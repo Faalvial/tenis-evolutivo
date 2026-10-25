@@ -1,0 +1,26 @@
+# --- Entorno de Python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- Resultados pesados: se comparten por la carpeta en la nube, no por git ---
+resultados/
+grabaciones/
+videos/
+*.mp4
+*.gif
+
+# --- Archivos de estado de entrenamientos y experimentos ---
+estado*.json
+historial*.csv
+mejor*.json
+*.tmp
+
+# --- Editores y sistema operativo ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

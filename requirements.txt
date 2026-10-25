@@ -1,0 +1,8 @@
+# Dependencias base (todos los integrantes). Versiones fijas para que todos
+# tengan exactamente lo mismo y los resultados sean reproducibles.
+pymunk==7.3.1        # física 2D
+pygame==2.6.1        # visor 2D y modo humano contra IA
+numpy==2.5.4         # red neuronal (si resulta más rápida que Python puro)
+scipy==1.18.1        # prueba U de Mann-Whitney
+matplotlib==3.11.2   # gráficos
+pytest==9.1.1        # pruebas automáticas

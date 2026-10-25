@@ -1,0 +1,5 @@
+# Configuración de pytest. Gracias a "pythonpath", las pruebas de tests/
+# pueden hacer "import config" o "import grabar" como si estuvieran en la raíz.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

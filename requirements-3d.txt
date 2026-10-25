@@ -1,0 +1,4 @@
+# Solo para el visor 3D (ver3d.py). Va aparte porque Ursina instala Panda3D,
+# que pesa bastante y solo lo necesita quien trabaja en la visualización.
+-r requirements.txt
+ursina==8.3.0

@@ -1,0 +1,3 @@
+# Normaliza los saltos de línea en el repositorio: evita que un cambio de
+# Windows a macOS/Linux aparezca como "todo el archivo modificado".
+* text=auto
