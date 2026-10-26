@@ -1,7 +1,7 @@
 # Capítulo 2 · Grabaciones y visor 2D (V1)
 
-> Etiqueta: `fase-1` (V1 se hizo junto con F1) · Archivos: `grabar.py` (de F0),
-> `ver2d.py`, `partido.py --grabar`
+> Etiquetas: `fase-1` (primer visor) y `fase-1.2` (visor nuevo, con ojos) · V1 se hizo junto con F1 · Archivos: `grabar.py` (de F0),
+> `ver2d.py`, `partido.py --grabar`, `tests/test_visor.py`
 
 ## 2.1 Dónde estamos
 
@@ -72,6 +72,27 @@ Los colores de los jugadores (azul a la izquierda, naranja a la derecha) son
 los mismos en el visor y en las figuras del libro, para que siempre se sepa
 quién es quién.
 
+### El diseño visual
+
+El visor está pensado también para la feria, así que además de mostrar lo que
+pasa intenta que se vea bien. **Nada de esto cambia el juego**: todo se calcula
+leyendo la grabación en el instante `t`.
+
+| Detalle | Cómo se calcula |
+|---|---|
+| **Ojos que siguen a la pelota** | Del ojo a la pelota hay un vector; se divide por su largo (se **normaliza**, queda de largo 1) y se multiplica por lo que la pupila puede moverse sin salirse del ojo |
+| **Gestos** | Si el último evento `punto` ocurrió hace menos de 1,6 s, el ganador cierra los ojos sonriendo (^ ^) y el perdedor baja las cejas |
+| **Parpadeo** | Cada jugador parpadea con su propio ritmo: `(t + desfase) mod periodo < 0,12 s` |
+| **Cámara que sigue la acción** | Para cada cuadro se encuadra a los dos jugadores y la pelota; el encuadre se **suaviza con un promedio móvil** de 91 cuadros (±0,75 s) para que no tiemble |
+| **Estela de la pelota** y **raquetas fantasma** | Se dibujan las posiciones de los cuadros anteriores con transparencia; las raquetas fantasma aparecen solo si la raqueta giró rápido (un golpe) |
+| **Anillo al botar** y **destello al golpear** | Se buscan los eventos `bote` y `golpe` de los últimos instantes y se dibujan más grandes y transparentes a medida que pasa el tiempo |
+| **Sombras** | Más chicas y claras cuanto más alto está el objeto |
+| **Marcador y avisos** | Se cuentan los eventos `punto`; el aviso traduce el motivo ("no llegó a la pelota", "la tiró fuera"...) |
+
+Dibujar un cuadro tarda unos 2 ms, así que el visor puede ir a 60 cuadros por
+segundo con margen: el cielo, las nubes y las colinas se pintan **una sola
+vez** al abrir la grabación, y en cada cuadro solo se dibuja lo que se mueve.
+
 ## 2.4 Diario de decisiones
 
 - **60 cuadros por segundo** (`PASOS_POR_CUADRO = 1`): una grabación de 6
@@ -80,21 +101,35 @@ quién es quién.
   vistazo y es la misma idea que usará el visor 3D.
 - **`pygame.display.init()` en lugar de `pygame.init()`:** `init()` también
   enciende el sonido, que no usamos y en algunas computadoras imprime avisos.
+- **Cámara que sigue en lugar de cámara fija:** con toda la cancha a la vista
+  (2080 unidades de ancho, contando el espacio detrás del fondo), un cubo medía
+  25 píxeles y los ojos casi no se veían. Siguiendo la acción mide entre 38 y 46.
+- **Solo ojos:** probamos con boca y mejillas, pero los ojos solos se ven más
+  limpios y alcanzan para mostrar hacia dónde mira el jugador y cómo le fue.
+- **Prueba del visor** (`tests/test_visor.py`): saca capturas sin ventana en
+  varios instantes y revisa los gestos y que la cámara siempre encuadre a los
+  dos jugadores. Si alguien cambia el formato de grabación y rompe el visor, se
+  entera antes de la feria.
 
 ## 2.5 Pruébalo tú
 
 ```bash
 python partido.py --semilla 3 --grabar grabaciones/demo.json
 python ver2d.py grabaciones/demo.json
-#   espacio = pausa · ← → = saltar 1 s · ↑ ↓ = velocidad · R = reiniciar · Esc = salir
+#   espacio = pausa · flechas izq/der = saltar 1 s · arriba/abajo = velocidad · R = reiniciar · Esc = salir
 python ver2d.py grabaciones/demo.json --captura grabaciones/cuadro.png --t 1.7
 ```
 
 ![Captura del visor](img/cap01_visor.png)
 
 *Figura 2.1. El visor en t = 1,7 s de la semilla 3: el jugador izquierdo
-acaba de golpear (la raqueta subió) y la pelota sale hacia la red. La línea
-roja de arriba es el techo.*
+acaba de golpear (se ven las raquetas fantasma del golpe y el destello) y la
+pelota sale hacia la red. Los dos miran la pelota.*
+
+![Gestos después de un punto](img/cap02_gestos.png)
+
+*Figura 2.2. Justo después de un punto: el ganador (naranja) cierra los ojos
+sonriendo, el perdedor (azul) baja las cejas, y el aviso explica qué pasó.*
 
 Experimentos:
 
@@ -103,7 +138,9 @@ Experimentos:
 2. Pon `PASOS_POR_CUADRO = 2` en `config.py` y graba de nuevo. ¿Cuánto pesa el
    archivo? ¿Se nota en el visor?
 3. Graba un partido con `SUBPASOS = 1` y la velocidad máxima de la pelota en
-   3000, y búscalo en cámara lenta (↓): ¿ves alguna pelota atravesando la raqueta?
+   3000, y búscalo en cámara lenta (flecha abajo): ¿ves alguna pelota atravesando la raqueta?
+4. En `ver2d.py`, cambia `SUAVIZADO_CAMARA` a 0 y mira un peloteo: ¿por qué
+   marea? Después prueba con 200: ¿qué se pierde?
 
 ## 2.6 Criterios de aceptación (V1)
 
@@ -125,4 +162,6 @@ qué es una red neuronal, con un ejercicio pequeño y sin física (fase F2a).
 
 - pygame, primeros pasos: https://www.pygame.org/docs/tut/PygameIntro.html
 - Rotación de un punto en 2D: https://es.wikipedia.org/wiki/Matriz_de_rotaci%C3%B3n
+- Vectores y normalización: *The Nature of Code*, cap. 1 — https://natureofcode.com/vectors/
+- Promedio móvil (suavizado): https://es.wikipedia.org/wiki/Media_m%C3%B3vil
 - JSON: https://docs.python.org/es/3/library/json.html

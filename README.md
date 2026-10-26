@@ -42,7 +42,7 @@ Criterio de F0: `pytest` corre sin errores en la máquina de cada integrante.
 | Fase | Estado |
 |---|---|
 | F0 Preparación | Repositorio, entorno y pruebas listos; interfaces decididas en F1, **falta la revisión del equipo** |
-| F1 Física y reglas | Lista: dos rivales programados pelotean, 52 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
+| F1 Física y reglas | Lista: dos rivales programados pelotean, 55 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
 | V1 Grabaciones + 2D | Lista: `python partido.py --grabar ...` y `python ver2d.py ...` ([capítulo 2](docs/libro/cap02_grabaciones_y_visor.md)) |
 
 Para probarlo:

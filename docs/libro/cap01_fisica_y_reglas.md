@@ -449,7 +449,7 @@ final y la misma para los tres tratamientos.
 
 ```bash
 git checkout fase-1.1
-pytest -v                                  # 52 pruebas
+pytest -v                                  # 52 pruebas (55 desde fase-1.2)
 python partido.py                          # un partido; imprime cada punto
 python partido.py --semilla 5 --puntos 10
 python partido.py --medir 20               # cuánto tarda un partido

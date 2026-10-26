@@ -3,3 +3,6 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# pygame usa por dentro una función vieja de setuptools y avisa en cada
+# prueba del visor; no es un problema nuestro, así que se oculta ese aviso.
+filterwarnings = ["ignore:pkg_resources is deprecated:DeprecationWarning"]
