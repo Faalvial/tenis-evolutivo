@@ -141,16 +141,63 @@ def test_rebote_pierde_energia_segun_la_elasticidad():
     assert altura_max == pytest.approx(config.ELASTICIDAD_PELOTA ** 2 * h, rel=0.05)
 
 
-def test_modelo_de_golpe_direccion_y_rapidez():
+def jugador_listo_para_golpear(lado, fuerza=1.0, angulo_preparacion=-math.pi / 4):
+    """Un jugador en medio de un golpe, con la preparación y la fuerza dadas."""
+    mundo = Mundo()
+    jugador = Jugador(mundo, lado, 300.0 if lado == 0 else 900.0)
+    jugador.angulo_inicio_golpe = angulo_preparacion
+    jugador.fuerza_golpe = fuerza
+    return jugador
+
+
+def punto_dulce(jugador):
+    """Un punto sobre la raqueta, justo en el punto dulce."""
+    (x, y), _ = punto_de_la_raqueta(jugador, config.POSICION_PUNTO_DULCE * config.LARGO_RAQUETA)
+    return (x, y)
+
+
+@pytest.fixture
+def capas_apagadas(monkeypatch):
+    monkeypatch.setattr(config, "APORTE_PELOTA_ENTRANTE", 0.0)
+    monkeypatch.setattr(config, "PERDIDA_FUERA_DEL_PUNTO_DULCE", 0.0)
+    monkeypatch.setattr(config, "MEZCLA_ANGULO_CONTACTO", 0.0)
+
+
+def test_modelo_de_golpe_direccion_y_rapidez(capas_apagadas):
     for lado in (0, 1):
-        mundo = Mundo()
-        jugador = Jugador(mundo, lado, 300.0 if lado == 0 else 900.0)
-        jugador.angulo_inicio_golpe = -math.pi / 4   # raqueta a -45°: el tiro sale a +45°
-        jugador.fuerza_golpe = 1.0
-        vx, vy = jugador.velocidad_salida()
+        jugador = jugador_listo_para_golpear(lado)   # raqueta a -45°: el tiro sale a +45°
+        vx, vy = jugador.velocidad_salida(jugador.pivote_mundo(), (0.0, 0.0))
         assert math.hypot(vx, vy) == pytest.approx(config.VEL_SALIDA_MAX)
         assert vy == pytest.approx(abs(vx))           # 45° hacia arriba
         assert (vx > 0) == (lado == 0)                # siempre hacia la red
+
+
+def test_capa_1_la_pelota_que_llega_suma_rapidez(capas_apagadas, monkeypatch):
+    monkeypatch.setattr(config, "APORTE_PELOTA_ENTRANTE", 0.3)
+    jugador = jugador_listo_para_golpear(0, fuerza=0.0)
+    vx, vy = jugador.velocidad_salida(punto_dulce(jugador), (-300.0, -400.0))   # llega a 500
+    assert math.hypot(vx, vy) == pytest.approx(config.VEL_SALIDA_MIN + 0.3 * 500.0)
+
+
+def test_capa_2_punto_dulce(capas_apagadas, monkeypatch):
+    monkeypatch.setattr(config, "PERDIDA_FUERA_DEL_PUNTO_DULCE", 0.3)
+    jugador = jugador_listo_para_golpear(1)
+    assert jugador.factor_punto_dulce(punto_dulce(jugador)) == pytest.approx(1.0)
+    # En el mango (y en la punta, que está igual de lejos) se pierde el 30 %.
+    assert jugador.factor_punto_dulce(jugador.pivote_mundo()) == pytest.approx(0.7)
+    punta, _ = punto_de_la_raqueta(jugador, config.LARGO_RAQUETA)
+    assert jugador.factor_punto_dulce(punta) == pytest.approx(0.7)
+    # Y es suave: un poco fuera del punto dulce pierde poco.
+    cerca, _ = punto_de_la_raqueta(jugador, config.POSICION_PUNTO_DULCE * config.LARGO_RAQUETA + 5)
+    assert 0.98 < jugador.factor_punto_dulce(cerca) < 1.0
+
+
+def test_capa_3_mezcla_el_angulo_al_tocar(capas_apagadas, monkeypatch):
+    monkeypatch.setattr(config, "MEZCLA_ANGULO_CONTACTO", 1.0)
+    jugador = jugador_listo_para_golpear(0, angulo_preparacion=-1.2)
+    vx, vy = jugador.velocidad_salida(punto_dulce(jugador), (0.0, 0.0))
+    # Con mezcla 1, la dirección sale del ángulo ACTUAL de la raqueta, no del de preparación.
+    assert math.atan2(vy, vx) == pytest.approx(jugador.angulo_propio() + math.pi / 2)
 
 
 def test_traducir_angulo_ida_y_vuelta():

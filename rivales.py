@@ -17,7 +17,9 @@ Cómo piensa (todo en su marco propio, como si jugara a la izquierda):
   - Camina hasta quedar a la distancia justa de ese punto, con un pequeño
     error al azar (para no ser perfecto).
   - Elige al azar un ángulo de tiro y un punto del campo rival donde quiere
-    que bote, y calcula (otra vez con el tiro parabólico) la fuerza necesaria.
+    que bote, y calcula (otra vez con el tiro parabólico) la fuerza necesaria,
+    descontando la potencia que trae la pelota (capa 1 del golpe). Supone
+    que le pega con el punto dulce: si se ubica mal, el tiro sale corto.
     A esa fuerza le suma un error al azar: la "potencia aleatoria" del plan.
   - Cuando faltan RIVAL_ANTICIPACION segundos para que la pelota llegue,
     golpea.
@@ -110,7 +112,12 @@ class RivalProgramado(Controlador):
                                           math.radians(self.angulo_tiro))
         golpe = 0.0
         if self.ya_boto and t_golpe <= config.RIVAL_ANTICIPACION:
-            golpe = fuerza_para_rapidez(rapidez * self.factor_fuerza)
+            # Capa 1 del golpe: la pelota que llega aporta rapidez, así que la
+            # raqueta tiene que poner menos. Predice con qué rapidez llegará
+            # (vx casi no cambia; vy cambia por la gravedad en t_golpe).
+            rapidez_entrante = math.hypot(p.pelota_vx, p.pelota_vy + config.GRAVEDAD * t_golpe)
+            rapidez_raqueta = rapidez * self.factor_fuerza - config.APORTE_PELOTA_ENTRANTE * rapidez_entrante
+            golpe = fuerza_para_rapidez(rapidez_raqueta)
         return Accion(mover=_mover_hacia(p.propio_x, destino),
                       angulo_raqueta=self._angulo_raqueta(), golpe=golpe)
 

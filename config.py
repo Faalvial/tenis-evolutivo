@@ -76,6 +76,15 @@ AMPLITUD_GOLPE = 1.0       # radianes que barre un golpe desde el ángulo en que
 # Modelo de golpe: rapidez con que sale la pelota según la fuerza (0 a 1).
 VEL_SALIDA_MIN = 300.0
 VEL_SALIDA_MAX = 1000.0
+# Capas de realismo del golpe (realismo progresivo, ver capítulo 1, sección 1.6).
+# Cada una se apaga con 0. Son efectos SUAVES: un cambio chico da un resultado
+# un poco distinto, nunca un salto.
+APORTE_PELOTA_ENTRANTE = 0.3         # capa 1: fracción de la rapidez de llegada que se suma
+PERDIDA_FUERA_DEL_PUNTO_DULCE = 0.3  # capa 2: cuánto se pierde en el extremo (0,3 = 30 %)
+POSICION_PUNTO_DULCE = 0.5           # capa 2: dónde está (fracción del largo desde el mango)
+# Capa 3 APAGADA: con ella el bote se desvía 6 veces más (127 frente a 19
+# unidades) aunque el rival no cometa errores. Se puede encender en el futuro.
+MEZCLA_ANGULO_CONTACTO = 0.0         # capa 3: 0 = ángulo de preparación, 1 = ángulo al tocar
 
 # --- Reglas (árbitro) ---
 TIEMPO_MAX_PUNTO = 30.0    # segundos; si se agota, el punto se anula (calibrado en F1: el plan decía 20)
@@ -98,8 +107,10 @@ RIVAL_DISTANCIA_GOLPE = 50.0   # distancia horizontal cubo-pelota al golpear
 RIVAL_ANTICIPACION = 0.05      # segundos antes de que llegue la pelota para empezar el golpe
 RIVAL_ANGULO_TIRO = (25.0, 45.0)   # grados sobre la horizontal (se elige al azar)
 RIVAL_DESTINO = (800.0, 1100.0)    # dónde quiere que bote, en x del marco propio
-RIVAL_ERROR_FUERZA = 0.10      # error relativo de la fuerza (0,10 = ±10 % típico)
-RIVAL_ERROR_POSICION = 20.0    # desviación típica (en unidades) del error al ubicarse
+# Recalibrados al encender las capas 1 y 2 del golpe (cap. 1, sección 1.6):
+# con el punto dulce, ubicarse mal ya hace fallar, así que hace falta menos error.
+RIVAL_ERROR_FUERZA = 0.07      # error relativo de la fuerza (0,07 = ±7 % típico)
+RIVAL_ERROR_POSICION = 12.0    # desviación típica (en unidades) del error al ubicarse
 RIVAL_ZONA_FRENADO = 20.0      # a esta distancia del destino empieza a frenar
 
 # --- Grabaciones (ver docs/interfaces.md) ---

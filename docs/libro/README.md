@@ -12,6 +12,8 @@ concepto se explica desde cero la primera vez que aparece.
 ## Cómo leerlo
 
 Cada fase quedó guardada en git con una **etiqueta** (`fase-0`, `fase-1`, ...).
+Si una fase se corrigió después de terminarla, la corrección lleva otra
+etiqueta (`fase-1.1`) y la original se conserva: así se puede comparar.
 Con ella puedes volver al proyecto tal como estaba al terminar esa fase:
 
 ```bash
@@ -43,8 +45,8 @@ Cada capítulo tiene la misma estructura:
 | Capítulo | Fase del plan | Etiqueta | Estado |
 |---|---|---|---|
 | [0. Preparación e interfaces](cap00_preparacion.md) | F0 | `fase-0` | listo |
-| [1. Física y reglas](cap01_fisica_y_reglas.md) | F1 | `fase-1` | listo |
-| [2. Grabaciones y visor 2D](cap02_grabaciones_y_visor.md) | V1 | `fase-1` | listo |
+| [1. Física y reglas](cap01_fisica_y_reglas.md) | F1 | `fase-1`, `fase-1.1` | listo |
+| [2. Grabaciones y visor 2D](cap02_grabaciones_y_visor.md) | V1 | `fase-1.1` | listo |
 | 3. Qué es una red neuronal | F2a | — | pendiente |
 | 4. Neuroevolución y etapa 1 | F2b | — | pendiente |
 | 5. Etapa 2: contra el rival programado | F3 | — | pendiente |

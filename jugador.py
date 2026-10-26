@@ -19,7 +19,10 @@ MODELO DE GOLPE (decisión de F1, ver capítulo 1 del libro). Si la pelota toca
 la raqueta mientras el jugador está golpeando, la pelota sale:
   - en la dirección PERPENDICULAR a la cara de la raqueta, tomando el ángulo
     que tenía la raqueta al EMPEZAR el golpe (la "preparación");
-  - con una rapidez que depende solo de la fuerza del golpe.
+  - con una rapidez que depende de la fuerza del golpe;
+  - más, si están encendidas, tres "capas de realismo" suaves: la potencia de
+    la pelota que llega, el punto dulce y el ángulo en el contacto
+    (ver velocidad_salida).
 Si la toca sin golpear, rebota con la física normal (un "bloqueo" sin fuerza).
 Con un choque 100 % físico el resultado era caótico: un píxel de diferencia en
 el punto de contacto cambiaba el destino en cientos de unidades.
@@ -215,22 +218,61 @@ class Jugador:
         if self.ya_pego:
             return CONTACTO_IGNORAR
         self.ya_pego = True
-        pelota.velocity = self.velocidad_salida()
+        pelota.velocity = self.velocidad_salida(pelota.position, pelota.velocity)
         return CONTACTO_GOLPE
 
-    def velocidad_salida(self):
+    def velocidad_salida(self, pos_pelota, vel_pelota):
         """
         Velocidad (en el mundo) con que sale la pelota en un golpe.
 
-        Dirección: perpendicular a la cara de arriba de la raqueta, o sea el
-        ángulo de preparación + 90°. Una raqueta inclinada hacia abajo-adelante
-        (ángulo negativo) manda la pelota hacia arriba-adelante.
-        Rapidez: de VEL_SALIDA_MIN (fuerza 0) a VEL_SALIDA_MAX (fuerza 1).
+        Base (capa 0):
+          dirección = perpendicular a la cara de arriba de la raqueta: el
+            ángulo de preparación + 90°. Una raqueta inclinada hacia
+            abajo-adelante (ángulo negativo) manda la pelota arriba-adelante.
+          rapidez = de VEL_SALIDA_MIN (fuerza 0) a VEL_SALIDA_MAX (fuerza 1).
+
+        Capas de realismo (cada una se apaga poniendo su parámetro en 0):
+          1. Potencia de la pelota que llega: se suma APORTE_PELOTA_ENTRANTE
+             veces la rapidez con que venía.
+          2. Punto dulce: la parte de la rapidez que pone la raqueta se
+             multiplica por un factor que vale 1 en el punto dulce y baja
+             hacia el mango y la punta (factor_punto_dulce).
+          3. Ángulo en el contacto: la dirección mezcla el ángulo de
+             preparación con el que tiene la raqueta al tocar la pelota.
         """
-        direccion = self.angulo_inicio_golpe + math.pi / 2
-        rapidez = (config.VEL_SALIDA_MIN
-                   + self.fuerza_golpe * (config.VEL_SALIDA_MAX - config.VEL_SALIDA_MIN))
+        mezcla = config.MEZCLA_ANGULO_CONTACTO
+        angulo = (1 - mezcla) * self.angulo_inicio_golpe + mezcla * self.angulo_propio()
+        direccion = angulo + math.pi / 2
+        rapidez_raqueta = (config.VEL_SALIDA_MIN
+                           + self.fuerza_golpe * (config.VEL_SALIDA_MAX - config.VEL_SALIDA_MIN))
+        rapidez_raqueta *= self.factor_punto_dulce(pos_pelota)
+        rapidez_entrante = math.hypot(*vel_pelota)
+        rapidez = rapidez_raqueta + config.APORTE_PELOTA_ENTRANTE * rapidez_entrante
+        rapidez = min(rapidez, config.VEL_MAX_PELOTA)
         return (self.signo * rapidez * math.cos(direccion), rapidez * math.sin(direccion))
+
+    def distancia_al_mango(self, punto):
+        """
+        Dónde tocó la pelota a lo largo de la raqueta: 0 = en el mango,
+        LARGO_RAQUETA = en la punta. Es la proyección del punto sobre el eje
+        de la raqueta (producto punto con la dirección de la raqueta).
+        """
+        eje = pymunk.Vec2d(1, 0).rotated(self.raqueta.angle)
+        r = (pymunk.Vec2d(*punto) - self.pivote_mundo()).dot(eje)
+        return max(0.0, min(config.LARGO_RAQUETA, r))
+
+    def factor_punto_dulce(self, punto):
+        """
+        1 si la pelota tocó el punto dulce; baja como una parábola hasta
+        1 − PERDIDA_FUERA_DEL_PUNTO_DULCE en el extremo más lejano.
+        Es una curva SUAVE a propósito: un poco más lejos = un poco más
+        lento, sin saltos (los saltos hacen imposible aprender).
+        """
+        largo = config.LARGO_RAQUETA
+        dulce = config.POSICION_PUNTO_DULCE * largo
+        distancia_maxima = max(dulce, largo - dulce)
+        d = abs(self.distancia_al_mango(punto) - dulce) / distancia_maxima
+        return 1.0 - config.PERDIDA_FUERA_DEL_PUNTO_DULCE * d * d
 
     # --- Datos para la percepción y la grabación ---
 

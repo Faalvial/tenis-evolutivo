@@ -1,6 +1,7 @@
 # Capítulo 1 · Física y reglas (F1)
 
-> Etiqueta: `fase-1` · Archivos nuevos: `mundo.py`, `jugador.py`, `arbitro.py`,
+> Etiquetas: `fase-1` (primera versión) y `fase-1.1` (con las capas de
+> realismo del golpe, sección 1.6) · Archivos nuevos: `mundo.py`, `jugador.py`, `arbitro.py`,
 > `partido.py`, `rivales.py`, `tests/test_arbitro.py`, `tests/test_fisica.py`,
 > `tests/test_partido.py`
 
@@ -213,7 +214,9 @@ dejamos que pymunk calcule el rebote. La pelota sale:
 Si la toca sin golpear, rebota con la física normal (un "bloqueo" sin fuerza).
 El rango de la raqueta va de −1,4 a −0,4 rad (inclinada hacia abajo y
 adelante), así que los tiros salen entre 11° y 69° sobre la horizontal. La
-sección 1.4 explica por qué tomamos esta decisión.
+sección 1.4 explica por qué tomamos esta decisión, y la 1.6 cómo le
+devolvimos parte del realismo con dos "capas" más: la potencia de la pelota
+que llega y el punto dulce.
 
 ## 1.4 Diario de decisiones
 
@@ -277,7 +280,8 @@ sabríamos si la IA "gana" de verdad. Le dimos dos errores al azar, y medimos
 | 15 % | 20 | 3,2 | 3 % |
 
 Elegimos la fila marcada: peloteos de varios golpes y casi todos los puntos
-con ganador. Los errores son de las dos clases que se ven en el tenis real:
+con ganador. (Más tarde, al encender el punto dulce, estos errores se
+recalibraron a 7 % y 12: ver la sección 1.6.) Los errores son de las dos clases que se ven en el tenis real:
 pelotas a la red o fuera (fuerza) y pelotas que no se alcanzan (posición).
 
 ### e) Desde muy atrás no llegaba → 45°
@@ -295,7 +299,7 @@ raqueta + medio grosor + radio de la pelota = 62.
 
 ### g) ¿Cuántos subpasos? Medirlo
 
-Con la prueba de 1000 lanzamientos (sección 1.6) contamos cuántas pelotas
+Con la prueba de 1000 lanzamientos (sección 1.7) contamos cuántas pelotas
 atravesaron la raqueta:
 
 | Subpasos | Raqueta quieta | Raqueta golpeando |
@@ -325,8 +329,10 @@ tratamiento B (pelotear). Subimos `TIEMPO_MAX_PUNTO` a 30 s.
    un punto del campo rival donde quiere que bote y su error de esta jugada.
 3. **Predice** dónde estará la pelota cuando, después de botar en su campo,
    baje a la altura de golpe (40), y camina hasta quedar a 50 de ese punto.
-4. Calcula con el tiro parabólico la **rapidez** necesaria, la convierte en
-   fuerza (inverso del modelo de golpe) y le aplica su error.
+4. Calcula con el tiro parabólico la **rapidez** necesaria, le descuenta la
+   potencia que va a traer la pelota (capa 1, sección 1.6), la convierte en
+   fuerza (inverso del modelo de golpe) y le aplica su error. Supone que le
+   pegará con el punto dulce: si se ubicó mal, el tiro sale corto.
 5. Cuando faltan 0,05 s para que llegue la pelota, golpea.
 
 Detecta el bote **sin mirar la física**: solo nota que la velocidad vertical de
@@ -342,11 +348,108 @@ botes válidos. Fíjate en que muchos golpes se dan **detrás** de la línea de
 fondo (x < 0 y x > 1200): por eso hizo falta el espacio de la decisión (c).
 Se regenera con `python docs/libro/figuras/figuras_cap01.py`.*
 
-## 1.6 Pruébalo tú
+## 1.6 Realismo progresivo: las capas del golpe
+
+Al revisar el capítulo, la pregunta obvia fue: *¿no es poco realista que la
+pelota salga igual, venga como venga y toque donde toque?* Sí lo es. El modelo
+de golpe de la sección 1.3 deja fuera tres cosas del tenis real:
+
+1. una pelota rápida "trae" potencia;
+2. no es lo mismo pegarle con el centro de la raqueta que con el borde;
+3. golpear antes o después cambia la dirección.
+
+La lección de la decisión (a) no era "el realismo no sirve", sino **"el caos no
+sirve"**. Hay realismo *suave* (un poco más de algo da un poco más de
+resultado) y realismo *caótico* (un píxel cambia todo). Así que agregamos el
+realismo **por capas**, cada una con un parámetro en `config.py` (0 = apagada),
+y **medimos** después de cada capa antes de pasar a la siguiente.
+
+### Las tres capas
+
+Sea `v_raqueta` la rapidez del modelo base (de 300 a 1000 según la fuerza):
+
+| Capa | Fórmula | Parámetro |
+|---|---|---|
+| 1. Potencia que llega | `rapidez = v_raqueta · f + k · rapidez_de_llegada` | `APORTE_PELOTA_ENTRANTE = k = 0,3` |
+| 2. Punto dulce | `f = 1 − p · d²`, con `d` = distancia al punto dulce (0 en el punto dulce, 1 en el extremo más lejano) | `PERDIDA_FUERA_DEL_PUNTO_DULCE = p = 0,3` |
+| 3. Ángulo al tocar | `dirección = (1 − m) · ángulo_preparación + m · ángulo_al_tocar + 90°` | `MEZCLA_ANGULO_CONTACTO = m` |
+
+¿Por qué `d²` y no `d`? Porque la parábola es **plana cerca del punto dulce**:
+tocar a 5 unidades del centro pierde menos del 1 %, y recién en los extremos se
+pierde el 30 %. Así se parece a una raqueta real, y además es suave.
+
+¿Dónde toca la pelota? Se **proyecta** su centro sobre el eje de la raqueta con
+un producto punto: `r = (pelota − pivote) · dirección_de_la_raqueta`
+(`Jugador.distancia_al_mango`). `r = 0` es el mango y `r = 50` la punta.
+
+### La medición, capa por capa
+
+Con el script `python docs/libro/figuras/medir_capas.py` medimos tres cosas:
+
+- **precisión sin errores**: el rival sin ningún error devuelve 200 saques; se
+  cuenta cuántos devuelve bien y cuánto se desvía el bote del punto al que
+  apuntó. Si una capa vuelve el golpe caótico, este desvío se dispara;
+- **peloteo con errores**: golpes válidos por punto y puntos anulados;
+- **dónde toca** la pelota en la raqueta.
+
+Primero, con el mismo rival de antes (errores de 10 % y 20):
+
+| Capas encendidas | Saques devueltos (sin error) | Desvío del bote (sin error) | Golpes válidos por punto | Anulados |
+|---|---|---|---|---|
+| 0 (base) | 100 % | 19 ± 38 | 4,5 | 2 % |
+| + 1 (potencia que llega) | 100 % | 16 ± 39 | 4,0 | 2 % |
+| + 2 (punto dulce) | 100 % | 19 ± 41 | **1,9** | 2 % |
+| + 3 (ángulo al tocar) | 99 % | **127 ± 90** | 2,9 | 2 % |
+
+Cómo leerla:
+
+- **Capa 1:** casi no cambia nada. El rival conoce la regla y la compensa
+  (descuenta la potencia que trae la pelota). **Se queda.**
+- **Capa 2:** la precisión sin errores no cambia (el golpe sigue siendo suave),
+  pero los peloteos se acortan a la mitad. ¿Por qué? Porque ahora **el error de
+  posición también le quita potencia**: ubicarse 20 unidades mal ya no solo
+  cambia el punto de golpe, también hace que el tiro salga corto y se quede en
+  la red. Es justo el efecto que queríamos: ubicarse bien vale la pena. **Se
+  queda**, y recalibramos el rival (abajo).
+- **Capa 3:** el desvío del bote se multiplica por 6 *aunque el rival no cometa
+  ningún error*. Durante el golpe la raqueta gira 12 rad/s; tocar la pelota
+  1/60 de segundo antes o después cambia el ángulo en 0,2 rad (11°). Es el caos
+  de la decisión (a) volviendo por la puerta de atrás. **Queda apagada**
+  (`MEZCLA_ANGULO_CONTACTO = 0`), lista para encenderse si algún día se quiere
+  un juego más difícil.
+
+### Recalibrar el rival
+
+Con el punto dulce, el rival falla más con el mismo error, así que hay que
+darle **menos** error para que vuelva a pelotear (capas 1 y 2 encendidas,
+20 partidos por fila):
+
+| Error de fuerza | Error de posición | Golpes válidos por punto | Anulados | Puntos ganados (izq. – der.) |
+|---|---|---|---|---|
+| **7 %** | **12** | **3,6** | **3 %** | **58 – 58** |
+| 7 % | 15 | 2,8 | 3 % | 62 – 54 |
+| 5 % | 20 | 2,5 | 2 % | 60 – 58 |
+
+Elegimos 7 % y 12. Fíjate en el cambio de **por qué** se pierden los puntos:
+antes se repartían entre pelotas no alcanzadas (`doble_bote`) y tiros a la red
+o al propio campo (`bote_propio`); ahora dominan claramente los segundos (81 de
+120 puntos), porque un golpe con el borde de la raqueta sale sin fuerza.
+
+### Lo que esto significa para la IA
+
+Ahora el jugador tiene que aprender a **ubicarse con precisión**, no solo a
+llegar a la pelota, y puede aprovechar la potencia de un tiro rápido del rival.
+Si en la etapa 1 (capítulo 4) nadie aprende a tocar la pelota, hay un plan B ya
+preparado: un **currículo de física**, que empieza con las capas apagadas y las
+enciende a medida que el jugador mejora. Una condición no se negocia: en la
+etapa 3, donde se comparan las aptitudes A, B y C, la física tiene que ser la
+final y la misma para los tres tratamientos.
+
+## 1.7 Pruébalo tú
 
 ```bash
-git checkout fase-1
-pytest -v                                  # 49 pruebas
+git checkout fase-1.1
+pytest -v                                  # 52 pruebas
 python partido.py                          # un partido; imprime cada punto
 python partido.py --semilla 5 --puntos 10
 python partido.py --medir 20               # cuánto tarda un partido
@@ -370,25 +473,28 @@ Experimentos (cambia un valor en `config.py`, prueba y después vuelve atrás co
    izquierdo: el rival derecho cree que está a la izquierda, corre hacia el lado
    equivocado y no toca la pelota. Es la mejor demostración de para qué sirve el
    marco propio. Vuelve atrás con `git checkout partido.py`.
-5. **Una regla nueva.** Inventa una regla en `arbitro.py` (por ejemplo: perder
+5. **Capas del golpe.** Enciende la capa 3 (`MEZCLA_ANGULO_CONTACTO = 1.0`) y
+   corre `python docs/libro/figuras/medir_capas.py`. Después prueba con 0,3:
+   ¿hay un valor intermedio que dé algo de realismo sin tanto caos?
+6. **Una regla nueva.** Inventa una regla en `arbitro.py` (por ejemplo: perder
    si golpeas dos veces seguidas) y escribe primero su prueba en
    `tests/test_arbitro.py`. Así se trabaja con pruebas: primero la prueba,
    después el código.
 
-## 1.7 Criterios de aceptación
+## 1.8 Criterios de aceptación
 
 | Criterio del plan | Cómo se comprueba | Resultado |
 |---|---|---|
-| Dos rivales programados pelotean | `test_dos_rivales_programados_pelotean` | 3,7–4,5 golpes válidos por punto, ≤ 5 % anulados, lados parejos |
+| Dos rivales programados pelotean | `test_dos_rivales_programados_pelotean` | 3,6–4,0 golpes válidos por punto, ≈ 3 % anulados, lados parejos (58 a 58 en 120 puntos) |
 | Pruebas de reglas (doble bote, red, fuera, golpe válido) | `tests/test_arbitro.py` | 15 pruebas, todas pasan |
 | La pelota no atraviesa la raqueta en 1000 golpes | `tests/test_fisica.py -k atraviesa` | 0 de 1000 quieta y 0 de 1000 golpeando (y 0 de 10 000 en la calibración) |
 | Reproducibilidad | `test_misma_semilla_mismo_partido` | idénticos evento por evento |
-| Tiempo de un partido medido | `python partido.py --medir 20` | ≈ 0,25 s por partido de 6 puntos (ver 1.8) |
+| Tiempo de un partido medido | `python partido.py --medir 20` | ≈ 0,21–0,25 s por partido de 6 puntos (ver 1.9) |
 
-## 1.8 Tiempos medidos y presupuesto de cómputo
+## 1.9 Tiempos medidos y presupuesto de cómputo
 
 Medido en la nube (Intel Xeon 2,1 GHz, **un solo núcleo**): un partido de 6
-puntos entre dos rivales programados tarda **≈ 0,25 s** y simula ≈ 75 s de
+puntos entre dos rivales programados tarda **≈ 0,21–0,25 s** y simula ≈ 65–75 s de
 juego (unas 300 veces más rápido que el tiempo real). Es el caso más caro:
 jugadores que pelotean largo. Al principio del entrenamiento los jugadores
 fallan enseguida y los puntos duran 2 a 4 s, así que un partido cuesta unas 4
@@ -408,7 +514,7 @@ Las palancas, en el orden del plan: 5 semillas en vez de 10, 4 puntos por
 partido en vez de 6, población de 40 y menos generaciones. Se decide con
 números reales al terminar F2b.
 
-## 1.9 Puente al capítulo 2 (y al 3)
+## 1.10 Puente al capítulo 2 (y al 3)
 
 Ya hay un juego que funciona y un jugador que sabe jugarlo. Pero lo sabemos
 mirando números en la terminal. Para **ver** si un peloteo tiene sentido, y más
@@ -420,7 +526,7 @@ Y queda la gran pregunta del proyecto: el rival programado juega bien porque
 sin que nadie le diga cómo? Para eso hace falta un "cerebro" que se pueda
 ajustar: una red neuronal (capítulo 3).
 
-## 1.10 Para estudiar más
+## 1.11 Para estudiar más
 
 - Pymunk, conceptos básicos (cuerpos, formas, uniones): https://www.pymunk.org/en/latest/overview.html
 - Integración de Euler y por qué los pasos de tiempo importan: *The Nature of Code*, cap. 1 y 2 — https://natureofcode.com/vectors/ y https://natureofcode.com/forces/

@@ -123,6 +123,7 @@ Los valores numéricos son **iniciales y ajustables**. Van en `config.py` y se c
 > - **Sin paredes invisibles:** los jugadores se mantienen en su mitad con un límite explícito de posición (las paredes se atravesaban).
 > - **Espacio detrás del fondo** (400) donde los jugadores pueden pararse; **zona prohibida junto a la red** de 62 para que la raqueta no la cruce.
 > - **Tiempo máximo por punto: 30 s** (no 20). **Subpasos: 2.** Rango de la raqueta: −1,4 a −0,4 rad.
+> - **Realismo progresivo del golpe** (sección 1.6 del capítulo 1): encendidas la capa 1 (la pelota que llega aporta el 30 % de su rapidez) y la capa 2 (punto dulce: hasta −30 % en los extremos); la capa 3 (ángulo al tocar) queda apagada porque vuelve el golpe caótico. Si en la etapa 1 nadie aprende, plan B: currículo de física (capas apagadas al inicio); en la etapa 3 la física es siempre la final.
 
 ### 3.1 Mundo (unidades de pymunk)
 - **Cancha:** ancho 1200; red en x = 600, de 60 de alto; suelo en y = 0; gravedad −900.
@@ -297,7 +298,7 @@ tenis_evolutivo/
 - **Medición de F1** (nube, Xeon 2,1 GHz, un núcleo): un partido de 6 puntos entre dos rivales programados tarda **≈ 0,25 s** (75 s de juego simulado); es el peor caso, con peloteos largos. Jugadores que fallan rápido: ≈ 0,05 s.
   - Peor caso: 240 partidos × 0,25 s = 60 s de CPU por generación → ≈ 7,5 s con 8 núcleos → 25 min por rama de 200 generaciones → **≈ 17 h** para 10 semillas × 4 ramas.
   - Caso típico temprano: ≈ 2 s por generación → **≈ 4 h**.
-  - Falta sumar el costo de la red (se mide en F2b). Probablemente haga falta aplicar recortes: decidir al terminar F2b, con números reales. Detalle en el capítulo 1 del libro, sección 1.8.
+  - Falta sumar el costo de la red (se mide en F2b). Probablemente haga falta aplicar recortes: decidir al terminar F2b, con números reales. Detalle en el capítulo 1 del libro, sección 1.9.
 - **Si no alcanza, en este orden:** bajar a 5 semillas, reducir los puntos por partido, reducir la población y luego las generaciones.
 - **Optimizaciones:** decidir cada 2 pasos de física, evaluar las métricas cada 10 generaciones y elegir la red más rápida (NumPy o Python puro).
 
