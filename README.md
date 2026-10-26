@@ -42,8 +42,9 @@ Criterio de F0: `pytest` corre sin errores en la máquina de cada integrante.
 | Fase | Estado |
 |---|---|
 | F0 Preparación | Repositorio, entorno y pruebas listos; interfaces decididas en F1, **falta la revisión del equipo** |
-| F1 Física y reglas | Lista: dos rivales programados pelotean, 55 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
+| F1 Física y reglas | Lista: dos rivales programados pelotean, 63 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
 | V1 Grabaciones + 2D | Lista: `python partido.py --grabar ...` y `python ver2d.py ...` ([capítulo 2](docs/libro/cap02_grabaciones_y_visor.md)) |
+| F2a Aprender redes | Lista: ejercicio "seguir un punto", `python ejercicios/seguir_punto.py` ([capítulo 3](docs/libro/cap03_red_neuronal.md)); falta que R2 responda las preguntas de la sección 3.8 |
 
 Para probarlo:
 
@@ -69,6 +70,7 @@ python partido.py --medir 20                       # medir el tiempo de un parti
 | `partido.py` | Simula partidos entre dos controladores |
 | `rivales.py` | Rival programado (tiro parabólico + errores al azar) |
 | `ver2d.py` | Visor 2D de grabaciones (pygame) |
+| `ejercicios/seguir_punto.py` | Ejercicio F2a: una red aprende a perseguir un punto (no es parte del experimento) |
 | `tests/` | Pruebas automáticas (`pytest`) |
 
 ## Guía de estudio
@@ -91,6 +93,13 @@ Cada concepto nuevo que aparezca en el código se agrega aquí con una fuente.
 - **Atravesamiento (*tunneling*)**: por qué un objeto rápido puede saltarse un choque y cómo se evita. https://en.wikipedia.org/wiki/Collision_detection
 - **Control proporcional**: girar más rápido cuanto más lejos del objetivo (el "P" de un PID). https://es.wikipedia.org/wiki/Controlador_PID
 - **Máquina de estados**: cómo el árbitro recuerda lo que pasó antes. https://es.wikipedia.org/wiki/M%C3%A1quina_de_estados
+
+### Redes neuronales y neuroevolución (capítulo 3)
+
+- **Neurona, peso, sesgo y función de activación (tanh)**: 3Blue1Brown, *Neural Networks*, capítulos 1 y 2 (YouTube); *The Nature of Code*, cap. 10. https://natureofcode.com/neural-networks/
+- **Propagación hacia adelante y capa oculta**: mismas fuentes; en código, `ejercicios/seguir_punto.py` (`propagar`).
+- **Algoritmo genético** (población, aptitud, selección por torneo, mutación, elitismo): *The Nature of Code*, cap. 9. https://natureofcode.com/genetic-algorithms/
+- **Neuroevolución** (encontrar los pesos por evolución en vez de retropropagación): *The Nature of Code*, cap. 11. https://natureofcode.com/neuroevolution/
 
 ### Conceptos del proyecto
 

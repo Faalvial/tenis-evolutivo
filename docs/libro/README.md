@@ -47,7 +47,7 @@ Cada capítulo tiene la misma estructura:
 | [0. Preparación e interfaces](cap00_preparacion.md) | F0 | `fase-0` | listo |
 | [1. Física y reglas](cap01_fisica_y_reglas.md) | F1 | `fase-1`, `fase-1.1` | listo |
 | [2. Grabaciones y visor 2D](cap02_grabaciones_y_visor.md) | V1 | `fase-1`, `fase-1.2` | listo |
-| 3. Qué es una red neuronal | F2a | — | pendiente |
+| [3. Qué es una red neuronal](cap03_red_neuronal.md) | F2a | `fase-2a` | listo |
 | 4. Neuroevolución y etapa 1 | F2b | — | pendiente |
 | 5. Etapa 2: contra el rival programado | F3 | — | pendiente |
 | 6. Etapa 3: coevolución y aptitudes A/B/C | F4 | — | pendiente |
