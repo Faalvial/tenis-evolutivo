@@ -48,6 +48,7 @@ Criterio de F0: `pytest` corre sin errores en la máquina de cada integrante.
 | F2b Red + AG + etapa 1 | Lista: el campeón devuelve bien el 60 % de las pelotas del lanzapelotas ([capítulo 4](docs/libro/cap04_neuroevolucion_etapa1.md)) |
 | F3 Etapa 2 | Lista: el campeón gana el 40 % de los puntos al rival programado, confirmado con validación ([capítulo 5](docs/libro/cap05_etapa2_rival.md)) |
 | F4 Etapa 3 | Lista: las tres ramas corren; se corrigieron la deriva y la trampa de C con decisiones del equipo ([capítulo 6](docs/libro/cap06_etapa3_coevolucion.md)) |
+| F5 + F6 Experimento y análisis | Experimento de ejemplo (3 semillas × 60 generaciones) y análisis listos ([capítulos 7](docs/libro/cap07_experimento.md) y [8](docs/libro/cap08_metricas_y_estadistica.md)); **falta la corrida completa en la laptop** |
 | V2 + V3 | `ver3d.py` y `jugar.py` listos; falta probarlos en las laptops ([capítulo 9](docs/libro/cap09_visor3d_y_jugar.md)) |
 
 Para probarlo:

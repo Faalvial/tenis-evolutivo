@@ -138,7 +138,51 @@ Experimentos:
    prueba sigue encontrando la diferencia con 5 semillas?
 2. Abre `tabla.csv` en una hoja de cálculo y arma tu propio gráfico.
 
-RESULTADOS_F6
+## 8.5 Resultados del experimento de ejemplo
+
+Estas son las tablas que generó `graficos.py` para el experimento de ejemplo
+del capítulo 7 (3 semillas, 60 generaciones). **Son de muestra**: sirven para
+aprender a leerlas, no para sacar las conclusiones del proyecto.
+
+Campeón de cada rama (la medida del plan):
+
+| Métrica | A · ganar | B · pelotear | C · precisión | p A–B | p A–C | p B–C |
+|---|---|---|---|---|---|---|
+| Puntos ganados al rival de referencia | 11% ± 6% | 17% ± 5% | 15% ± 6% | 0.200 | 0.507 | 1.000 |
+| Golpes válidos por punto | 0.92 ± 0.34 | 2.96 ± 1.07 | 1.71 ± 0.92 | 0.100 | 0.700 | 0.400 |
+| Golpes válidos (% de los propios) | 41% ± 2% | 13% ± 3% | 34% ± 17% | 0.100 | 0.700 | 0.400 |
+| Profundidad media de los botes (unidades) | 310.14 ± 61.17 | 278.15 ± 71.83 | 325.79 ± 47.53 | 0.700 | 0.700 | 0.400 |
+| Puntos ganados con un golpe ganador | 4% ± 5% | 7% ± 5% | 6% ± 7% | 0.507 | 0.376 | 1.000 |
+| Puntos perdidos por error propio | 21% ± 19% | 11% ± 3% | 18% ± 13% | 1.000 | 1.000 | 1.000 |
+| Puntos anulados | 0% ± 0% | 5% ± 3% | 2% ± 3% | 0.077 | 1.000 | 0.376 |
+
+Los 10 mejores de cada población (la medida complementaria):
+
+| Métrica | A · ganar | B · pelotear | C · precisión | p A–B | p A–C | p B–C |
+|---|---|---|---|---|---|---|
+| Puntos ganados al rival de referencia | 14% ± 5% | 18% ± 2% | 14% ± 5% | 0.700 | 1.000 | 0.700 |
+| Golpes válidos por punto | 0.91 ± 0.07 | 2.22 ± 0.51 | 1.59 ± 0.42 | 0.100 | 0.100 | 0.400 |
+| Golpes válidos (% de los propios) | 42% ± 7% | 19% ± 4% | 24% ± 3% | 0.100 | 0.100 | 0.400 |
+| Profundidad media de los botes (unidades) | 315.65 ± 66.40 | 302.68 ± 37.99 | 332.12 ± 44.22 | 1.000 | 1.000 | 0.400 |
+| Puntos ganados con un golpe ganador | 5% ± 5% | 7% ± 3% | 5% ± 5% | 0.700 | 1.000 | 0.700 |
+| Puntos perdidos por error propio | 21% ± 8% | 14% ± 2% | 18% ± 8% | 0.400 | 0.700 | 0.700 |
+| Puntos anulados | 0% ± 0% | 3% ± 2% | 2% ± 1% | 0.100 | 0.100 | 0.400 |
+
+Cómo leerlas:
+
+- **El mejor valor p posible con 3 semillas es 0,100**, y aparece varias veces:
+  por ejemplo, "golpes válidos por punto" entre A y B en las dos tablas. Eso
+  quiere decir que las 3 semillas de B quedaron **todas** por encima de las 3
+  de A. Es lo más fuerte que pueden decir 3 semillas, y aun así no llega a 0,05.
+  Con 5 semillas y la misma separación daría 0,008.
+- **La tabla de la población es más "limpia"** que la del campeón: las
+  desviaciones son más chicas (por ejemplo, golpes válidos por punto de A:
+  0,91 ± 0,07 en la población contra 0,92 ± 0,34 en el campeón). Por eso la
+  agregamos.
+- Las diferencias que se repiten en las dos tablas y van en la dirección de
+  las hipótesis (B pelotea más que A) son las candidatas a confirmarse en el
+  experimento completo. Las que aparecen en una sola tabla, no tanto.
+
 
 ## 8.6 Para estudiar más
 

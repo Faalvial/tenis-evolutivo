@@ -51,8 +51,8 @@ Cada capítulo tiene la misma estructura:
 | [4. Neuroevolución y etapa 1](cap04_neuroevolucion_etapa1.md) | F2b | `fase-2b` | listo |
 | [5. Etapa 2: contra el rival programado](cap05_etapa2_rival.md) | F3 | `fase-3` | listo |
 | [6. Etapa 3: coevolución y aptitudes A/B/C](cap06_etapa3_coevolucion.md) | F4 | `fase-4` | listo |
-| 7. El experimento | F5 | — | pendiente |
-| 8. Métricas, gráficos y estadística | D2 + F6 | — | pendiente |
+| [7. El experimento](cap07_experimento.md) | F5 | `fase-5` | ejemplo listo; falta la corrida completa |
+| [8. Métricas, gráficos y estadística](cap08_metricas_y_estadistica.md) | D2 + F6 | `fase-5` | listo (con datos de ejemplo) |
 | [9. Visor 3D y humano contra IA](cap09_visor3d_y_jugar.md) | V2 + V3 | `fase-4` | listo (falta probarlo en las laptops) |
 
 Las figuras se regeneran con los scripts de `docs/libro/figuras/` (por ejemplo,

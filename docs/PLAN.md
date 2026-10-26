@@ -307,6 +307,7 @@ tenis_evolutivo/
   - Caso típico temprano: ≈ 2 s por generación → **≈ 4 h**.
   - Falta sumar el costo de la red (se mide en F2b). Probablemente haga falta aplicar recortes: decidir al terminar F2b, con números reales. Detalle en el capítulo 1 del libro, sección 1.9.
 - **Medición de F2b:** la red es el 6 % del tiempo de un partido (Python puro: 8 µs por decisión; NumPy: 4,6 µs; se queda Python puro). La etapa 1 cuesta 1–2 s por generación con 4 procesos y terminó en 36 generaciones (semilla 1). Detalle: capítulo 4 del libro.
+- **Medición del experimento de ejemplo (F5):** con 4 núcleos, el currículo tarda 4,5–8 min por semilla y cada rama de la etapa 3 ≈ 10 min cada 60 generaciones (con 4 + 4 rivales). Una semilla completa (200 generaciones) ≈ 1 h 50 min con 4 núcleos; en la laptop de 10 núcleos ≈ 50 min. **10 semillas ≈ 8–9 h en una laptop o 4–5 h en dos; 5 semillas ≈ 4 h.** Detalle: capítulo 7 del libro.
 - **Si no alcanza, en este orden:** bajar a 5 semillas, reducir los puntos por partido, reducir la población y luego las generaciones.
 - **Optimizaciones:** decidir cada 2 pasos de física, evaluar las métricas cada 10 generaciones y elegir la red más rápida (NumPy o Python puro).
 
