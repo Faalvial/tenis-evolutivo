@@ -1,8 +1,8 @@
 """
 controlador.py — INTERFAZ COMÚN entre quien juega y la simulación.
 
-PROPUESTA F0 — pendiente de acuerdo del equipo. Una vez aceptada, no se cambia
-sin avisar a todos (ver CLAUDE.md y docs/interfaces.md).
+Decidida en F1 (ver docs/libro/cap00_preparacion.md). No se cambia sin avisar
+a todos (ver CLAUDE.md y docs/interfaces.md).
 
 Idea central: partido.py no sabe quién juega. La IA, el rival programado y el
 humano son "controladores": reciben una Percepcion y devuelven una Accion.
