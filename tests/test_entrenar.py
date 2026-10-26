@@ -128,7 +128,7 @@ def test_una_rama_de_la_etapa_3(etapa3_chica, tmp_path, tratamiento):
                                       procesos=1, generaciones=3)
     assert estado["generacion"] == 3
     assert len(estado["salon"]) == 3                       # un campeón por generación
-    assert [m["generacion"] for m in estado["metricas"]] == [0, 2]
+    assert [m["generacion"] for m in estado["metricas"]] == [0, 2]   # la 2 es múltiplo y además la última
 
 
 def test_las_ramas_parten_de_la_misma_poblacion_base(etapa3_chica, tmp_path):
@@ -145,3 +145,8 @@ def test_reanudar_una_rama_da_lo_mismo(etapa3_chica, tmp_path):
     a = cargar_json(os.path.join(cortada, "estado.json"))
     b = cargar_json(os.path.join(seguida, "estado.json"))
     assert a["poblacion"] == b["poblacion"] and a["salon"] == b["salon"]
+
+
+def test_se_mide_la_ultima_generacion_de_una_corrida_corta(etapa3_chica, tmp_path):
+    estado = entrenar.entrenar_etapa3(str(tmp_path / "A"), etapa3_chica, "A", procesos=1, generaciones=4)
+    assert [m["generacion"] for m in estado["metricas"]] == [0, 2, 3]

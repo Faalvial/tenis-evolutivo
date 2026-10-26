@@ -317,7 +317,8 @@ def estado_rama_nuevo(poblacion_base, tratamiento, semilla):
             "salon": [], "historial": [], "metricas": []}
 
 
-def una_generacion_etapa3(estado, mapear):
+def una_generacion_etapa3(estado, mapear, ultima=None):
+    """`ultima`: la última generación de esta corrida (también se miden sus métricas)."""
     inicio = time.perf_counter()
     gen, tratamiento = estado["generacion"], estado["tratamiento"]
     azar = azar_de_generacion(estado["semilla"], f"3{tratamiento}", gen)
@@ -331,7 +332,8 @@ def una_generacion_etapa3(estado, mapear):
     mejor = max(range(len(aptitudes)), key=lambda i: aptitudes[i])
     campeon = estado["poblacion"][mejor]
     estado["salon"].append(list(campeon))
-    if gen % config.METRICAS_CADA == 0 or gen == config.ETAPA3_GENERACIONES - 1:
+    ultima = config.ETAPA3_GENERACIONES - 1 if ultima is None else ultima
+    if gen % config.METRICAS_CADA == 0 or gen == ultima:
         estado["metricas"].append({"generacion": gen, **metricas.medir(ControladorRed(campeon))})
     fila = {"generacion": gen, "mejor": round(aptitudes[mejor], 4),
             "promedio": round(sum(aptitudes) / len(aptitudes), 4),
@@ -372,7 +374,7 @@ def entrenar_etapa3(carpeta, ruta_base, tratamiento, procesos, generaciones=None
         print(f"\nEtapa 3, tratamiento {tratamiento}")
         print("gen    mejor  promedio  anulados  ganada(mejor)  segundos")
         while estado["generacion"] < limite:
-            fila = una_generacion_etapa3(estado, mapear)
+            fila = una_generacion_etapa3(estado, mapear, ultima=limite - 1)
             guardar_rama(carpeta, estado)
             print(f"{fila['generacion']:3d}  {fila['mejor']:7.3f}  {fila['promedio']:8.3f}  "
                   f"{fila['anulados']:8.0%}  {fila['ganada_mejor']:13.0%}  {fila['segundos']:8.1f}")

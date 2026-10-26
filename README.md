@@ -42,10 +42,13 @@ Criterio de F0: `pytest` corre sin errores en la máquina de cada integrante.
 | Fase | Estado |
 |---|---|
 | F0 Preparación | Repositorio, entorno y pruebas listos; interfaces decididas en F1, **falta la revisión del equipo** |
-| F1 Física y reglas | Lista: dos rivales programados pelotean, 90 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
+| F1 Física y reglas | Lista: dos rivales programados pelotean, las pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
 | V1 Grabaciones + 2D | Lista: `python partido.py --grabar ...` y `python ver2d.py ...` ([capítulo 2](docs/libro/cap02_grabaciones_y_visor.md)) |
 | F2a Aprender redes | Lista: ejercicio "seguir un punto", `python ejercicios/seguir_punto.py` ([capítulo 3](docs/libro/cap03_red_neuronal.md)); falta que R2 responda las preguntas de la sección 3.8 |
 | F2b Red + AG + etapa 1 | Lista: el campeón devuelve bien el 60 % de las pelotas del lanzapelotas ([capítulo 4](docs/libro/cap04_neuroevolucion_etapa1.md)) |
+| F3 Etapa 2 | Lista: el campeón gana el 40 % de los puntos al rival programado, confirmado con validación ([capítulo 5](docs/libro/cap05_etapa2_rival.md)) |
+| F4 Etapa 3 | **Abierta**: corre sin errores, pero hay deriva y una trampa en C; decisiones pendientes ([capítulo 6](docs/libro/cap06_etapa3_coevolucion.md), sección 6.5) |
+| V2 + V3 | `ver3d.py` y `jugar.py` listos; falta probarlos en las laptops ([capítulo 9](docs/libro/cap09_visor3d_y_jugar.md)) |
 
 Para probarlo:
 
@@ -56,6 +59,10 @@ python ver2d.py grabaciones/demo.json              # verlo
 python partido.py --medir 20                       # medir el tiempo de un partido
 python entrenar.py --carpeta resultados/prueba --semilla 1   # entrenar la etapa 1
 python entrenar.py --carpeta resultados/prueba --grabar-campeon
+python jugar.py --campeon resultados/prueba                 # jugarle tú al campeón
+python ver3d.py grabaciones/demo.json                       # visor 3D (requirements-3d.txt)
+python experimentos.py --carpeta resultados/corto --semillas 1 --generaciones 30
+python graficos.py --carpeta resultados/corto
 ```
 
 ## Archivos
@@ -78,6 +85,11 @@ python entrenar.py --carpeta resultados/prueba --grabar-campeon
 | `genetico.py` | Algoritmo genético: torneo, cruce por neurona, mutación, elitismo |
 | `aptitud.py` | Funciones de aptitud (por ahora, la de la etapa 1) |
 | `entrenar.py` | Entrenamiento por etapas, en paralelo, reanudable |
+| `metricas.py` | Batería de referencia y métricas de la sección 8 |
+| `experimentos.py` | Semillas × tratamientos, con la bifurcación desde la población base |
+| `graficos.py` | Curvas, cajas, mapa de botes, Mann-Whitney y tabla |
+| `ver3d.py` | Visor 3D de grabaciones (Ursina) |
+| `jugar.py` | Humano contra IA con el teclado |
 | `ejercicios/seguir_punto.py` | Ejercicio F2a: una red aprende a perseguir un punto (no es parte del experimento) |
 | `tests/` | Pruebas automáticas (`pytest`) |
 

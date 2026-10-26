@@ -227,6 +227,13 @@ se va al fondo de su campo y baja la raqueta.
 
 ### La primera corrida (semilla 1)
 
+> **Nota.** Esta corrida es de la primera versión de `entrenar.py`, que daba la
+> etapa por terminada apenas el campeón cumplía la meta en la batería de
+> prueba. En el capítulo 5 descubrimos que eso infla los resultados (la
+> "maldición del ganador") y agregamos una batería de validación. Con la regla
+> nueva, la misma semilla tarda 150 generaciones en cumplir la meta de verdad
+> (sección 5.4).
+
 ```
 $ python entrenar.py --carpeta resultados/prueba --semilla 1 --procesos 4
 gen    mejor  promedio  devueltas(mejor)  prueba campeón  segundos
@@ -256,15 +263,31 @@ a saltar ni a volear; es la primera estrategia que inventó la evolución.*
 
 ### Los tipos de cruce
 
-TABLA_CRUCES
+> **Resultados preliminares.** Esta comparación se corrió con la primera
+> versión de la regla de la meta (sin validación, ver capítulo 5) y se cortó
+> al cambiar la regla, así que está incompleta: falta "sin cruce" y una semilla
+> del cruce uniforme. Para repetirla completa con la regla actual (tarda
+> alrededor de una hora con 4 procesos):
+> `python docs/libro/figuras/medir_etapa1.py --procesos 4`,
+> que además dibuja la figura `img/cap04_cruces.png`.
 
-![Comparación de cruces](img/cap04_cruces.png)
+| Cruce | Generaciones hasta la meta, por semilla | Promedio | Devuelve en 200 pelotas nuevas |
+|---|---|---|---|
+| Por neurona | 36, 91, 11, 41, 16 (semillas 1 a 5) | 39 | 62 % a 76 % |
+| Uniforme | 61, 81, 26, 31 (semillas 1 a 4) | 50 | 64 % (semilla 1) |
+| Sin cruce | (sin datos) | | |
 
-*Figura 4.2. Aptitud promedio de la población en la etapa 1, para cada tipo de
-cruce y cada semilla. Cada línea termina cuando su campeón cumple la meta.
-Se regenera con `python docs/libro/figuras/medir_etapa1.py`.*
+**¿Hay diferencia?** Con estos datos, **no se puede decir**. El cruce por
+neurona tardó menos en promedio (39 frente a 50 generaciones), pero mira cuánto
+cambia de una semilla a otra: de 11 a 91 generaciones con el mismo método. La
+prueba U de Mann-Whitney (capítulo 8) da un valor p de 0,73: una diferencia así
+aparece por pura casualidad la mayoría de las veces. Para comparar métodos con
+tanta variación entre semillas hacen falta muchas más semillas. Por ahora
+dejamos el cruce por neurona, que es el del plan y no salió peor.
 
-ANALISIS_CRUCES
+Esta es una lección importante para todo el proyecto: **una sola corrida no
+prueba nada**. Por eso el experimento principal usa varias semillas (5 a 10)
+por tratamiento.
 
 ## 4.6 Pruébalo tú
 
@@ -298,8 +321,8 @@ Experimentos (en `config.py`; usa una carpeta nueva para cada uno):
 
 | Criterio del plan | Cómo se comprueba | Resultado |
 |---|---|---|
-| La aptitud de la etapa 1 sube | `historial.csv`, figura 4.2 | El promedio de la población pasa de ≈ 0,7 a ≈ 1,5–1,9 |
-| El campeón devuelve ≥ 60 % de las pelotas | Batería fija de 40 pelotas; y 200 nuevas | 60 % (semilla 1, gen. 36); 57–65 % en pelotas nuevas |
+| La aptitud de la etapa 1 sube | `historial.csv` | El promedio de la población pasa de ≈ 0,7 a ≈ 1,5–1,9 (y a ≈ 3 en la corrida larga del capítulo 5) |
+| El campeón devuelve ≥ 60 % de las pelotas | Batería fija de 40 pelotas; y 200 nuevas | 60 % (semilla 1, gen. 36); 57–65 % en pelotas nuevas. Con la validación del capítulo 5: 60 % y 60 % (gen. 150) |
 | Red, percepción con espejo, `genetico.py`, lanzapelotas | `tests/test_red.py`, `test_genetico.py`, `test_entrenar.py` | Pasan |
 | Guardado y reanudación | `test_reanudar_da_lo_mismo_que_no_cortar` | Idéntico |
 | ¿Python puro o NumPy? | `python red.py --medir` + perfilador | Python puro (la red es el 6 % del tiempo) |
