@@ -335,15 +335,35 @@ def una_generacion_etapa3(estado, mapear, ultima=None):
     ultima = config.ETAPA3_GENERACIONES - 1 if ultima is None else ultima
     if gen % config.METRICAS_CADA == 0 or gen == ultima:
         estado["metricas"].append({"generacion": gen, **metricas.medir(ControladorRed(campeon))})
+        estado.setdefault("metricas_poblacion", []).append(
+            {"generacion": gen, **medir_poblacion(estado["poblacion"], aptitudes, mapear)})
     fila = {"generacion": gen, "mejor": round(aptitudes[mejor], 4),
             "promedio": round(sum(aptitudes) / len(aptitudes), 4),
             "anulados": round(sum(r[1] for r in resultados) / len(resultados), 4),
             "ganada_mejor": round(resultados[mejor][2], 4), "segundos": 0}
-    estado["poblacion"] = genetico.siguiente_generacion(estado["poblacion"], aptitudes, azar)
+    # Mutación más chica que en las etapas 1 y 2 (capítulo 6, sección 6.5):
+    # con la aptitud ruidosa de la coevolución, una mutación grande borra lo aprendido.
+    estado["poblacion"] = genetico.siguiente_generacion(estado["poblacion"], aptitudes, azar,
+                                                        sigma=config.SIGMA_MUTACION_ETAPA3)
     estado["generacion"] = gen + 1
     fila["segundos"] = round(time.perf_counter() - inicio, 2)
     estado["historial"].append(fila)
     return fila
+
+
+def _medir_individuo(genoma):
+    """Métricas de un individuo en la batería de referencia (para el Pool: función de módulo)."""
+    m = metricas.medir(ControladorRed(genoma), puntos=config.PUNTOS_MUESTRA_POBLACION)
+    m.pop("botes")
+    return m
+
+
+def medir_poblacion(poblacion, aptitudes, mapear):
+    """Promedio de las métricas de los MUESTRA_POBLACION_METRICAS mejores de la generación."""
+    orden = sorted(range(len(poblacion)), key=lambda i: aptitudes[i], reverse=True)
+    muestra = [poblacion[i] for i in orden[:config.MUESTRA_POBLACION_METRICAS]]
+    resultados = mapear(_medir_individuo, muestra)
+    return {clave: sum(r[clave] for r in resultados) / len(resultados) for clave in resultados[0]}
 
 
 COLUMNAS_ETAPA3 = ["generacion", "mejor", "promedio", "anulados", "ganada_mejor", "segundos"]

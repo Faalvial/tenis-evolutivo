@@ -110,7 +110,16 @@ def test_aptitud_B_es_la_misma_para_los_dos_y_cuenta_los_anulados():
 
 
 def test_aptitud_C_profundos_menos_errores():
-    # Golpes del jugador 0: 4. Profundos y válidos: 1 (punto 1). Terminan en error: 1 (último golpe del punto 2).
+    # Jugador 0: 4 golpes. Profundos y válidos: 1 (punto 1). Fallidos: 1 (último golpe del punto 2).
     assert aptitud_C([(partido_ejemplo(), 0)]) == pytest.approx((1 - 1) / 4)
-    # El jugador 1 golpeó una vez, corto, y no perdió por error propio.
-    assert aptitud_C([(partido_ejemplo(), 1)]) == pytest.approx(0.0)
+    # Jugador 1: no devolvió la pelota del punto 1 (1 intento fallido) y golpeó
+    # una vez, corto, en el punto 2 sin error: (0 − 1) / 2.
+    assert aptitud_C([(partido_ejemplo(), 1)]) == pytest.approx(-0.5)
+
+
+def test_aptitud_C_no_jugar_ya_no_conviene():
+    # La trampa de la corrida corta de F4: un jugador que nunca golpea pierde
+    # todos los puntos por doble bote. Con el ajuste, eso vale −1 (el mínimo).
+    no_juega = (lanzamiento(ganador=1, motivo="doble_bote", validos=0)
+                + lanzamiento(ganador=1, motivo="doble_bote", validos=0))
+    assert aptitud_C([(no_juega, 0)]) == -1.0

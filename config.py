@@ -160,9 +160,17 @@ ETAPA2_PRUEBA_CADA = 5
 
 # --- Etapa 3: IA contra IA (capítulo 6) ---
 ETAPA3_GENERACIONES = 200          # número FIJO de generaciones (no hay meta: es el experimento)
-RIVALES_POBLACION = 2              # rivales al azar de la población actual
-RIVALES_SALON = 2                  # rivales al azar del salón de la fama
+# Decidido por el equipo tras la corrida corta de F4 (capítulo 6, sección 6.5):
+# con 2 + 2 rivales y σ = 0,15, la población perdía habilidad por ruido.
+RIVALES_POBLACION = 4              # rivales al azar de la población actual (el plan decía 2)
+RIVALES_SALON = 4                  # rivales al azar del salón de la fama (el plan decía 2)
+SIGMA_MUTACION_ETAPA3 = 0.05       # mutación de la etapa 3 (más chica que SIGMA_MUTACION)
 METRICAS_CADA = 10                 # cada cuántas generaciones se mide al campeón (sección 8)
+# Medida COMPLEMENTARIA (no reemplaza a la del plan): además del campeón, se
+# miden los mejores de la población. El campeón se elige con mucho ruido; el
+# promedio de varios individuos da una señal más estable (capítulo 6).
+MUESTRA_POBLACION_METRICAS = 10    # cuántos de los mejores se miden
+PUNTOS_MUESTRA_POBLACION = 100     # puntos de la batería para cada uno
 
 # --- Grabaciones (ver docs/interfaces.md) ---
 VERSION_GRABACION = 1      # súbelo solo si el formato cambia de forma incompatible

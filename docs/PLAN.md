@@ -211,6 +211,12 @@ Se definen **antes** de ver resultados y no se cambian después. Si se ajustan, 
 - **C · Precisión:** fracción de los golpes propios que son válidos y caen en el tercio profundo del campo rival, menos la fracción de golpes propios que terminan en error.
 - **Puntos anulados** (tiempo máximo agotado): no suman ni restan en A y C. En B se registran aparte, para detectar si "congelar" la pelota se vuelve una trampa.
 
+> **Ajustes documentados (decididos por el equipo tras la corrida corta de F4, capítulo 6 del libro):**
+> - **C:** una pelota que el jugador no devuelve (le bota dos veces) cuenta también como intento fallido. Con la definición original, no golpear nunca daba C = 0 y la evolución aprendió a no jugar (trampa documentada como hallazgo, H4).
+> - **B:** los puntos anulados cuentan en el promedio (un peloteo largo que llega al tiempo máximo es lo que B premia) y su fracción se informa aparte.
+> - **Etapa 3:** 4 rivales de la población + 4 del salón (en vez de 2 + 2) y mutación σ = 0,05 (en vez de 0,15), para evitar la deriva por ruido. Igual en los tres tratamientos.
+> - **Métricas (sección 8):** la batería de referencia es de 300 puntos (en vez de 100), para bajar el ruido de ±5 a ±3 puntos porcentuales.
+
 ---
 
 ## 8. Métricas y evaluación

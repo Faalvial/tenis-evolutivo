@@ -23,14 +23,16 @@ def experimento_falso(tmp_path):
         for semilla in range(5):
             ruido = azar.uniform(-0.03, 0.03)
             resumen.append({"semilla": semilla, "tratamiento": t, "generaciones": 20, "historial": [],
-                            "metricas": [metricas_falsas(g, nivel * g / 19 + ruido, azar) for g in (0, 10, 19)]})
+                            "metricas": [metricas_falsas(g, nivel * g / 19 + ruido, azar) for g in (0, 10, 19)],
+                            "metricas_poblacion": [metricas_falsas(g, nivel * g / 19, azar) for g in (0, 10, 19)]})
     guardar_json(os.path.join(tmp_path, "resumen.json"), resumen)
     return str(tmp_path)
 
 
 def test_genera_graficos_y_tabla(experimento_falso):
     salida, texto = graficos.generar(experimento_falso)
-    for nombre in ("curvas.png", "cajas.png", "mapa_botes.png", "tabla.md", "tabla.csv"):
+    for nombre in ("curvas.png", "cajas.png", "mapa_botes.png", "tabla.md", "tabla.csv",
+                   "curvas_poblacion.png", "tabla_poblacion.md"):
         assert os.path.getsize(os.path.join(salida, nombre)) > 0
     assert "A · ganar" in texto and "p A–B" in texto
 

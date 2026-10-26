@@ -7,7 +7,7 @@ contra el mismo rival (el rival programado de la etapa 2) y con los mismos
 saques (SEMILLA_BATERIA fija).
 
 Métricas de un jugador (sección 8):
-  1. ganados          % de puntos ganados contra el rival de referencia
+  1. ganados          % de puntos ganados contra el rival de referencia (PUNTOS_BATERIA puntos)
   2. peloteo          golpes válidos por punto (de los dos jugadores)
   3. golpes_validos   % de sus golpes que fueron válidos
   4. profundidad      distancia media a la red de sus botes válidos
@@ -28,7 +28,9 @@ from aptitud import ERRORES, separar_puntos
 from rivales import RivalProgramado
 
 SEMILLA_BATERIA = 8082026      # saques y rival de la batería: NO cambiar a mitad del experimento
-PUNTOS_BATERIA = 100
+# El plan decía 100; el equipo decidió 300 (capítulo 5, sección 5.4): con 100
+# puntos, el % de puntos ganados tiene ±5 puntos de ruido; con 300, ±3.
+PUNTOS_BATERIA = 300
 
 
 def jugar_bateria(controlador, puntos=None, semilla=SEMILLA_BATERIA):

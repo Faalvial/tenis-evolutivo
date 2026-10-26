@@ -101,7 +101,7 @@ y botó en el **tercio profundo** del campo rival (a más de 400 unidades de la
 red), menos la fracción que terminó en error (fue el último golpe del punto y
 el punto lo perdió él por red, fuera o techo).
 
-### 6.2.5 Dos decisiones de interpretación (para que el equipo las confirme)
+### 6.2.5 Dos decisiones de interpretación
 
 El plan dice: "Puntos anulados: no suman ni restan en A y C. En B se registran
 aparte, para detectar si 'congelar' la pelota se vuelve una trampa". Lo
@@ -111,21 +111,21 @@ interpretamos así:
    golpes válidos es justo lo que B premia; sacarlo del promedio castigaría al
    mejor peloteo posible. La fracción de anulados se guarda aparte en el
    historial (columna `anulados`) para vigilar la trampa.
-2. **En C, un jugador que no golpea nunca tiene aptitud 0**, igual que uno que
-   golpea mitad bien y mitad mal. Es un posible hueco: si golpear se volviera
-   muy arriesgado, la evolución podría preferir "no jugar". Lo vigilamos con
-   las métricas (golpes válidos y errores). Si aparece, sería una trampa para
-   documentar (hipótesis H4).
+2. **En C, un jugador que no golpea nunca tenía aptitud 0**, igual que uno
+   que golpea mitad bien y mitad mal. Era un posible hueco, y la evolución lo
+   encontró (sección 6.4 b). Por decisión del equipo (sección 6.5), ahora
+   **una pelota no devuelta cuenta como intento fallido**: no jugar da C = −1.
 
 ## 6.3 Cómo está construido
 
 | Pieza | Qué hace |
 |---|---|
 | `entrenar.entrenar_etapa3(carpeta, ruta_base, tratamiento, procesos)` | Una rama: parte de `poblacion_base.json` y evoluciona con la aptitud del tratamiento. Reanudable |
-| `entrenar.elegir_rivales` | 2 rivales de la población (sin él mismo) + 2 del salón (en la generación 0, de la población) |
-| `entrenar.evaluar_etapa3` | Juega los 4 partidos en los dos lados y calcula la aptitud |
+| `entrenar.elegir_rivales` | 4 rivales de la población (sin él mismo) + 4 del salón (en la generación 0, de la población); eran 2 + 2 hasta la sección 6.5 |
+| `entrenar.evaluar_etapa3` | Juega los 8 partidos en los dos lados y calcula la aptitud |
 | `estado["salon"]` | El campeón de cada generación |
-| `estado["metricas"]` | Cada `METRICAS_CADA` (10) generaciones, las métricas del campeón contra la batería de referencia |
+| `estado["metricas"]` | Cada `METRICAS_CADA` (10) generaciones, las métricas del campeón contra la batería de referencia (300 puntos) |
+| `estado["metricas_poblacion"]` | Lo mismo, promediado sobre los 10 mejores de la población (100 puntos cada uno): una medida complementaria, más estable que un solo campeón |
 | `experimentos.py` | Para cada semilla: currículo una vez, y las tres ramas desde la misma población base |
 
 ```bash
@@ -142,7 +142,10 @@ resultados/corto/semilla_1/rama_C/
 resultados/corto/resumen.json           (lo que lee graficos.py)
 ```
 
-## 6.4 Resultados de la corrida corta (semilla 1, 30 generaciones por rama)
+## 6.4 Primera corrida corta (semilla 1, 30 generaciones por rama)
+
+> Esta corrida es de la configuración ORIGINAL del plan (2 + 2 rivales,
+> σ = 0,15, C sin el ajuste). Está guardada en `resultados/f4_v1`.
 
 ```bash
 python experimentos.py --carpeta resultados/f4 --semillas 1 --generaciones 30 --procesos 4
@@ -218,18 +221,48 @@ anticipamos como riesgo en la sección 6.2.5. Es un hallazgo interesante para la
 hipótesis H4, pero si se deja así, la rama C no produce un estilo de juego que
 comparar con A y B.
 
-## 6.5 Decisiones pendientes (para el equipo)
+## 6.5 Las decisiones del equipo y la segunda corrida
 
 Estas decisiones cambian el diseño experimental, así que no las tomamos solos
-(`CLAUDE.md`):
+(`CLAUDE.md`). Se las planteamos al equipo, que eligió:
 
-1. **Contra la deriva:** ¿mutación más chica en la etapa 3 (σ = 0,05), más
-   partidos por evaluación (4 + 4 rivales, el doble de tiempo) o las dos cosas?
-2. **La trampa de C:** ¿se deja C como está y se documenta la trampa como
-   hallazgo, o se ajusta para que "no devolver" también cuente como error
-   (así, no jugar tiene C negativa)?
-3. **La batería de referencia:** ¿100 puntos, como dice el plan, o 300, que
-   bajan el ruido de ±5 a ±3 puntos porcentuales (capítulo 5)?
+| Problema | Decisión | Dónde |
+|---|---|---|
+| Deriva por ruido | **Las dos cosas**: σ = 0,05 en la etapa 3 y 4 + 4 rivales | `config.SIGMA_MUTACION_ETAPA3`, `RIVALES_POBLACION`, `RIVALES_SALON` |
+| Trampa de C | **No devolver = intento fallido** (la trampa queda documentada como hallazgo de H4) | `aptitud.golpes_propios` |
+| Ruido de la batería | **300 puntos** en vez de 100 | `metricas.PUNTOS_BATERIA` |
+
+Los tres ajustes quedaron anotados en la sección 7 del plan (`docs/PLAN.md`),
+porque modifican el diseño original. Son **iguales para los tres
+tratamientos**, así que la comparación sigue siendo justa.
+
+Con eso repetimos la corrida corta. Resultado: 20 individuos de cada población contra el rival de referencia, en
+la generación 30:
+
+| Población | Puntos ganados | Golpes válidos por punto |
+|---|---|---|
+| Base (antes de la etapa 3) | 26 % | 1,36 |
+| Rama A, generación 30 | 26 % | 1,17 |
+| Rama B, generación 30 | **29 %** | 1,27 |
+| Rama C, generación 30 | 15 % | **2,05** |
+
+- **La deriva desapareció:** A y B conservan (B incluso mejora) lo que sabían
+  contra el rival de referencia.
+- **La rama C ya no deja de jugar.** Al contrario: sus jugadores son los que
+  **más devuelven** (2,05 golpes válidos por punto) pero los que **menos
+  ganan** (15 %). Con el ajuste, fallar una devolución cuesta, así que la
+  evolución empuja hacia un juego **seguro**: devolver como sea, aunque el
+  tiro no sea profundo. Es un estilo propio, distinto de A y de B. ¿Es lo que
+  predecía H3 ("C arriesga más")? No: es casi lo contrario. Hay que ver si se
+  mantiene con más generaciones y semillas (capítulo 7).
+- **Costo:** con el doble de partidos, cada generación tarda unos 9–10
+  segundos con 4 procesos (unos 5 minutos por rama de 30 generaciones).
+
+Las métricas del **campeón** solo, en cambio, saltan mucho de una medición a
+otra (el campeón de la generación 0 ganaba el 13 %, el de la 20 de la rama A
+el 32 %, el de la 29 el 25 %). Por eso agregamos la medida complementaria de
+la población (`metricas_poblacion`): el plan pide la del campeón y la
+mantenemos, pero para sacar conclusiones conviene mirar las dos.
 
 ## 6.6 Pruébalo tú
 
@@ -243,8 +276,9 @@ python jugar.py --campeon resultados/corto/semilla_1/rama_A
 
 Experimentos:
 
-1. **Ver la trampa.** Corre solo la rama C 30 generaciones y mira la columna
-   "promedio": ¿sube hacia 0 desde abajo? Es la población dejando de golpear.
+1. **Ver la trampa.** En `aptitud.golpes_propios`, quita el `no_devolvio` (que
+   valga siempre 0), corre solo la rama C 30 generaciones y mira al campeón en
+   el visor: ¿deja de golpear? Después vuelve atrás con `git checkout aptitud.py`.
 2. **El salón de la fama.** Pon `RIVALES_SALON = 0` y `RIVALES_POBLACION = 4`:
    ¿las métricas contra el rival de referencia oscilan más?
 
@@ -252,10 +286,10 @@ Experimentos:
 
 | Criterio del plan | Resultado |
 |---|---|
-| Una corrida corta de cada tratamiento termina sin errores | Sí: 3 ramas × 30 generaciones, ~100 s cada una |
-| Se ven diferencias de estilo en `ver2d.py` | Sí, pero no las esperadas: C dejó de jugar (trampa), A tira fuerte y se equivoca (8 de 10 puntos terminaron en error), B tiene los puntos más cortos. Con la deriva sin corregir, las diferencias se mezclan con la pérdida de habilidad |
+| Una corrida corta de cada tratamiento termina sin errores | Sí: 3 ramas × 30 generaciones, con las dos configuraciones (~100 s y ~300 s por rama) |
+| Se ven diferencias de estilo | Sí. Primera corrida: C dejó de jugar (trampa), A tira fuerte y se equivoca. Segunda corrida: C devuelve mucho y gana poco (juego seguro), B gana más que A contra el rival de referencia. Las diferencias reales entre tratamientos se miden con varias semillas en el capítulo 7 |
 
-**F4 queda abierta** hasta que el equipo decida los puntos de 6.5.
+**F4 cerrada** con las decisiones de 6.5.
 
 ## 6.8 Para estudiar más
 

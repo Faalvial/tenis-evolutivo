@@ -7,6 +7,9 @@ en resultados/<experimento>/graficos/:
   cajas.png         diagramas de caja de las métricas finales, por tratamiento
   mapa_botes.png    dónde botan los tiros válidos de cada tratamiento (mapa de calor)
   tabla.md/.csv     promedio ± desviación estándar y valores p de Mann-Whitney
+  curvas_poblacion.png, tabla_poblacion.md/.csv
+                    lo mismo con el promedio de los 10 mejores de la población
+                    (medida complementaria, más estable que un solo campeón)
 
 Estadística: la prueba U de Mann-Whitney compara dos grupos (por ejemplo, las
 5 semillas de A contra las 5 de B) sin suponer que los datos siguen una
@@ -59,27 +62,30 @@ def por_tratamiento(resumen):
     return {t: ramas for t, ramas in grupos.items() if ramas}
 
 
-def finales(ramas, clave):
+# Dos fuentes de métricas: "metricas" (el campeón, como dice el plan) y
+# "metricas_poblacion" (promedio de los 10 mejores; complementaria, más estable).
+
+def finales(ramas, clave, fuente="metricas"):
     """El valor final de una métrica en cada rama (una por semilla)."""
-    return [rama["metricas"][-1][clave] for rama in ramas]
+    return [rama[fuente][-1][clave] for rama in ramas]
 
 
-def curva(ramas, clave):
+def curva(ramas, clave, fuente="metricas"):
     """Generaciones medidas y, en cada una, (promedio, desviación) entre semillas."""
-    generaciones = sorted({m["generacion"] for rama in ramas for m in rama["metricas"]})
+    generaciones = sorted({m["generacion"] for rama in ramas for m in rama[fuente]})
     promedios, desvios = [], []
     for g in generaciones:
-        valores = [m[clave] for rama in ramas for m in rama["metricas"] if m["generacion"] == g]
+        valores = [m[clave] for rama in ramas for m in rama[fuente] if m["generacion"] == g]
         promedios.append(statistics.mean(valores))
         desvios.append(statistics.pstdev(valores))
     return generaciones, promedios, desvios
 
 
-def comparar(grupos, clave):
+def comparar(grupos, clave, fuente="metricas"):
     """Valor p de Mann-Whitney para cada par de tratamientos (None si hay menos de 2 semillas)."""
     pvalores = {}
     for a, b in itertools.combinations(grupos, 2):
-        xa, xb = finales(grupos[a], clave), finales(grupos[b], clave)
+        xa, xb = finales(grupos[a], clave, fuente), finales(grupos[b], clave, fuente)
         if len(xa) < 2 or len(xb) < 2 or len(set(xa + xb)) == 1:
             pvalores[(a, b)] = None
         else:
@@ -102,11 +108,11 @@ def _formato(valor, porcentaje):
     return f"{valor:.0%}" if porcentaje else f"{valor:.2f}"
 
 
-def grafico_curvas(grupos, ruta):
+def grafico_curvas(grupos, ruta, fuente="metricas"):
     fig, ejes = plt.subplots(2, 4, figsize=(14, 6.5), dpi=120)
     for ax, (clave, titulo, porcentaje) in zip(ejes.flat, METRICAS):
         for t, ramas in grupos.items():
-            gens, prom, desv = curva(ramas, clave)
+            gens, prom, desv = curva(ramas, clave, fuente)
             ax.plot(gens, prom, color=COLORES[t], linewidth=2, label=NOMBRES[t])
             ax.fill_between(gens, [p - d for p, d in zip(prom, desv)],
                             [p + d for p, d in zip(prom, desv)], color=COLORES[t], alpha=0.15, linewidth=0)
@@ -117,7 +123,8 @@ def grafico_curvas(grupos, ruta):
         _estilo(ax)
     ejes.flat[-1].axis("off")
     ejes.flat[0].legend(frameon=False, fontsize=8)
-    fig.suptitle("Métricas del campeón contra el rival de referencia (promedio ± desviación entre semillas)",
+    quien = "del campeón" if fuente == "metricas" else "de los 10 mejores de la población"
+    fig.suptitle(f"Métricas {quien} contra el rival de referencia (promedio ± desviación entre semillas)",
                  fontsize=11, color=TINTA, x=0.01, ha="left")
     fig.tight_layout()
     fig.savefig(ruta)
@@ -177,7 +184,7 @@ def grafico_botes(grupos, ruta, columnas=24):
 
 # --- Tabla ---
 
-def tabla(grupos):
+def tabla(grupos, fuente="metricas"):
     """Filas: métricas. Columnas: cada tratamiento (promedio ± desv.) y los valores p."""
     pares = list(itertools.combinations(grupos, 2))
     encabezado = ["Métrica"] + [NOMBRES[t] for t in grupos] + [f"p {a}–{b}" for a, b in pares]
@@ -185,24 +192,24 @@ def tabla(grupos):
     for clave, titulo, porcentaje in METRICAS:
         fila = [titulo]
         for t in grupos:
-            v = finales(grupos[t], clave)
+            v = finales(grupos[t], clave, fuente)
             fila.append(f"{_formato(statistics.mean(v), porcentaje)} ± {_formato(statistics.pstdev(v), porcentaje)}")
-        pvalores = comparar(grupos, clave)
+        pvalores = comparar(grupos, clave, fuente)
         fila += ["—" if pvalores[p] is None else f"{pvalores[p]:.3f}" for p in pares]
         filas.append(fila)
     return encabezado, filas
 
 
-def guardar_tabla(encabezado, filas, carpeta):
+def guardar_tabla(encabezado, filas, carpeta, nombre="tabla"):
     import csv
-    with open(os.path.join(carpeta, "tabla.csv"), "w", encoding="utf-8", newline="") as f:
+    with open(os.path.join(carpeta, f"{nombre}.csv"), "w", encoding="utf-8", newline="") as f:
         escritor = csv.writer(f)
         escritor.writerow(encabezado)
         escritor.writerows(filas)
     lineas = ["| " + " | ".join(encabezado) + " |", "|" + "---|" * len(encabezado)]
     lineas += ["| " + " | ".join(fila) + " |" for fila in filas]
     texto = "\n".join(lineas) + "\n"
-    with open(os.path.join(carpeta, "tabla.md"), "w", encoding="utf-8") as f:
+    with open(os.path.join(carpeta, f"{nombre}.md"), "w", encoding="utf-8") as f:
         f.write(texto)
     return texto
 
@@ -216,6 +223,10 @@ def generar(carpeta_experimento):
     grafico_cajas(grupos, os.path.join(salida, "cajas.png"))
     grafico_botes(grupos, os.path.join(salida, "mapa_botes.png"))
     texto = guardar_tabla(*tabla(grupos), salida)
+    if all(rama.get("metricas_poblacion") for ramas in grupos.values() for rama in ramas):
+        grafico_curvas(grupos, os.path.join(salida, "curvas_poblacion.png"), "metricas_poblacion")
+        texto += "\nPoblación (10 mejores):\n" + guardar_tabla(
+            *tabla(grupos, "metricas_poblacion"), salida, "tabla_poblacion")
     return salida, texto
 
 

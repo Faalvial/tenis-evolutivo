@@ -23,6 +23,10 @@ lados:
   B · Pelotear   golpes válidos por punto (de los dos jugadores).
   C · Precisión  fracción de golpes propios válidos y profundos (último tercio
                  del campo rival) − fracción de golpes propios que terminan en error.
+                 AJUSTE decidido por el equipo (capítulo 6, sección 6.5): una pelota
+                 que el jugador NO devuelve (le bota dos veces) también cuenta como
+                 un intento fallido. Sin esto, "no golpear nunca" daba C = 0, más
+                 que un jugador real, y la evolución aprendía a no jugar.
   Puntos anulados: no suman ni restan en A y C (A los saca del denominador).
   En B CUENTAN (un peloteo que llega al tiempo máximo es justo lo que B
   premia) y se informan aparte, para detectar la trampa de "congelar" la
@@ -139,19 +143,28 @@ def aptitud_B(partidos):
 
 
 def golpes_propios(evs, lado):
-    """Clasifica los golpes del jugador en un punto: (total, válidos y profundos, terminaron en error)."""
+    """
+    Clasifica los intentos del jugador en un punto:
+    (intentos, válidos y profundos, fallidos).
+    Intentos = sus golpes, más 1 si al final no devolvió una pelota que era suya.
+    Fallidos = el último golpe si el punto lo perdió por red, fuera o techo, o
+    la pelota que no devolvió (perdió por doble bote).
+    """
     golpes = [ev for ev in evs if ev["tipo"] == eventos.GOLPE and ev["jugador"] == lado]
     profundos = sum(1 for ev in evs if ev["tipo"] == eventos.BOTE and ev["valido"]
                     and ev["golpeador"] == lado and abs(ev["x"] - config.X_RED) >= PROFUNDIDAD_MINIMA)
-    # Un golpe "termina en error" si es el último del punto y el punto lo
-    # pierde él por red, fuera o techo.
     final = evs[-1]
-    error = int(bool(golpes) and final["ganador"] == 1 - lado and final["motivo"] in ERRORES)
-    return len(golpes), profundos, error
+    perdio = final["ganador"] == 1 - lado
+    error = int(bool(golpes) and perdio and final["motivo"] in ERRORES)
+    no_devolvio = int(perdio and final["motivo"] == eventos.DOBLE_BOTE)
+    return len(golpes) + no_devolvio, profundos, error + no_devolvio
 
 
 def aptitud_C(partidos):
-    """C · Precisión: fracción de golpes válidos profundos − fracción de golpes que terminan en error."""
+    """
+    C · Precisión: fracción de intentos válidos y profundos − fracción de
+    intentos fallidos (golpes que terminan en error o pelotas no devueltas).
+    """
     total = profundos = errores = 0
     for evs, lado in _puntos_con_lado(partidos):
         g, p, e = golpes_propios(evs, lado)

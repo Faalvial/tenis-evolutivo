@@ -116,6 +116,8 @@ def etapa3_chica(entrenamiento_chico, monkeypatch, tmp_path):
     monkeypatch.setattr(config, "RIVALES_SALON", 1)
     monkeypatch.setattr(config, "METRICAS_CADA", 2)
     monkeypatch.setattr(metricas, "PUNTOS_BATERIA", 4)
+    monkeypatch.setattr(config, "MUESTRA_POBLACION_METRICAS", 2)
+    monkeypatch.setattr(config, "PUNTOS_MUESTRA_POBLACION", 2)
     base = {"semilla": 1, "poblacion": genetico.poblacion_inicial(random.Random(0), tamano=6)}
     ruta = os.path.join(tmp_path, "poblacion_base.json")
     guardar_json(ruta, base)
@@ -129,6 +131,8 @@ def test_una_rama_de_la_etapa_3(etapa3_chica, tmp_path, tratamiento):
     assert estado["generacion"] == 3
     assert len(estado["salon"]) == 3                       # un campeón por generación
     assert [m["generacion"] for m in estado["metricas"]] == [0, 2]   # la 2 es múltiplo y además la última
+    assert [m["generacion"] for m in estado["metricas_poblacion"]] == [0, 2]
+    assert 0.0 <= estado["metricas_poblacion"][0]["ganados"] <= 1.0
 
 
 def test_las_ramas_parten_de_la_misma_poblacion_base(etapa3_chica, tmp_path):

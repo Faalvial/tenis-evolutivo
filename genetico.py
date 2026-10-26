@@ -34,12 +34,16 @@ def recorte_suave(w):
     return config.LIMITE_PESO * math.tanh(w / config.LIMITE_PESO)
 
 
-def mutar(genoma, azar):
-    """A cada peso (con probabilidad PROB_MUTACION) se le suma un número gaussiano."""
+def mutar(genoma, azar, sigma=None):
+    """
+    A cada peso (con probabilidad PROB_MUTACION) se le suma un número gaussiano
+    de desviación `sigma` (por defecto SIGMA_MUTACION).
+    """
+    sigma = config.SIGMA_MUTACION if sigma is None else sigma
     hijo = []
     for w in genoma:
         if azar.random() < config.PROB_MUTACION:
-            w = recorte_suave(w + azar.gauss(0.0, config.SIGMA_MUTACION))
+            w = recorte_suave(w + azar.gauss(0.0, sigma))
         hijo.append(w)
     return hijo
 
@@ -67,18 +71,18 @@ def torneo(poblacion, aptitudes, azar):
     return poblacion[max(elegidos, key=lambda i: aptitudes[i])]
 
 
-def hacer_hijo(poblacion, aptitudes, azar):
+def hacer_hijo(poblacion, aptitudes, azar, sigma=None):
     padre = torneo(poblacion, aptitudes, azar)
     if config.TIPO_CRUCE != "ninguno" and azar.random() < config.PROB_CRUCE:
         otro = torneo(poblacion, aptitudes, azar)
         padre = CRUCES[config.TIPO_CRUCE](padre, otro, azar)
-    return mutar(padre, azar)
+    return mutar(padre, azar, sigma)
 
 
-def siguiente_generacion(poblacion, aptitudes, azar):
+def siguiente_generacion(poblacion, aptitudes, azar, sigma=None):
     """Elitismo (los ELITE mejores pasan tal cual) + hijos de torneo con cruce y mutación."""
     orden = sorted(range(len(poblacion)), key=lambda i: aptitudes[i], reverse=True)
     nueva = [list(poblacion[i]) for i in orden[:config.ELITE]]
     while len(nueva) < len(poblacion):
-        nueva.append(hacer_hijo(poblacion, aptitudes, azar))
+        nueva.append(hacer_hijo(poblacion, aptitudes, azar, sigma))
     return nueva

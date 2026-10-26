@@ -47,7 +47,7 @@ Criterio de F0: `pytest` corre sin errores en la máquina de cada integrante.
 | F2a Aprender redes | Lista: ejercicio "seguir un punto", `python ejercicios/seguir_punto.py` ([capítulo 3](docs/libro/cap03_red_neuronal.md)); falta que R2 responda las preguntas de la sección 3.8 |
 | F2b Red + AG + etapa 1 | Lista: el campeón devuelve bien el 60 % de las pelotas del lanzapelotas ([capítulo 4](docs/libro/cap04_neuroevolucion_etapa1.md)) |
 | F3 Etapa 2 | Lista: el campeón gana el 40 % de los puntos al rival programado, confirmado con validación ([capítulo 5](docs/libro/cap05_etapa2_rival.md)) |
-| F4 Etapa 3 | **Abierta**: corre sin errores, pero hay deriva y una trampa en C; decisiones pendientes ([capítulo 6](docs/libro/cap06_etapa3_coevolucion.md), sección 6.5) |
+| F4 Etapa 3 | Lista: las tres ramas corren; se corrigieron la deriva y la trampa de C con decisiones del equipo ([capítulo 6](docs/libro/cap06_etapa3_coevolucion.md)) |
 | V2 + V3 | `ver3d.py` y `jugar.py` listos; falta probarlos en las laptops ([capítulo 9](docs/libro/cap09_visor3d_y_jugar.md)) |
 
 Para probarlo:

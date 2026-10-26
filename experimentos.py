@@ -64,6 +64,7 @@ def resumir(carpeta):
             estado = cargar_json(ruta)
             resumen.append({"semilla": estado["semilla"], "tratamiento": tratamiento,
                             "generaciones": estado["generacion"], "metricas": estado["metricas"],
+                            "metricas_poblacion": estado.get("metricas_poblacion", []),
                             "historial": estado["historial"]})
     guardar_json(os.path.join(carpeta, "resumen.json"), resumen)
     return resumen
