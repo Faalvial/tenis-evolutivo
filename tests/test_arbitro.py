@@ -51,6 +51,21 @@ def test_receptor_que_deja_botar_dos_veces_el_saque_pierde():
     assert (p["ganador"], p["motivo"], p["golpes_validos"]) == (1, eventos.DOBLE_BOTE, 0)
 
 
+def test_saque_que_bota_bien_y_despues_sale_lo_pierde_el_receptor():
+    # Error encontrado en F2b: el segundo bote fuera de la cancha anulaba el punto.
+    arb = nuevo(receptor=0)
+    arb.bote(0.5, X_IZQ)
+    arb.bote(1.0, -150.0)               # sigue de largo y bota detrás del fondo
+    p = punto_final(arb)
+    assert (p["ganador"], p["motivo"]) == (1, eventos.DOBLE_BOTE)
+
+
+def test_saque_cuyo_primer_bote_no_cae_en_el_receptor_se_anula():
+    arb = nuevo(receptor=0)
+    arb.bote(0.5, X_DER)
+    assert punto_final(arb)["motivo"] == eventos.ANULADO
+
+
 def test_golpe_valido_y_doble_bote_del_rival():
     arb = nuevo(receptor=0)
     arb.bote(0.5, X_IZQ)

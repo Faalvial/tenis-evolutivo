@@ -192,3 +192,39 @@ def fuerza_para_rapidez(rapidez):
 def _mover_hacia(x_actual, x_destino):
     """Velocidad proporcional a la distancia: frena al acercarse al destino."""
     return max(-1.0, min(1.0, (x_destino - x_actual) / config.RIVAL_ZONA_FRENADO))
+
+
+# --- Etapa 1: el lanzapelotas ---
+
+def lanzapelotas(azar, receptor):
+    """
+    Función de saque para la etapa 1 (se le pasa a partido.jugar_partido):
+    lanza la pelota desde el campo rival para que bote en el campo del
+    receptor, como si fuera un tiro de un rival. Elige al azar desde dónde,
+    a qué altura, con qué ángulo y dónde quiere que bote, y calcula la
+    rapidez con el tiro parabólico (la misma cuenta que usa el rival programado).
+
+    Las posiciones de config están en el marco propio del receptor (su fondo
+    en 0); para el jugador derecho se reflejan.
+    """
+    x_lanza = azar.uniform(*config.LANZAPELOTAS_X)
+    altura = azar.uniform(*config.LANZAPELOTAS_ALTURA)
+    x_bote = azar.uniform(*config.LANZAPELOTAS_DESTINO)
+    angulo = math.radians(azar.uniform(*config.LANZAPELOTAS_ANGULO))
+    rapidez = rapidez_para_llegar(x_lanza - x_bote, altura, angulo)
+    vx, vy = -rapidez * math.cos(angulo), rapidez * math.sin(angulo)   # hacia el receptor
+    if receptor == 0:
+        return (x_lanza, altura, vx, vy)
+    return (config.ANCHO_CANCHA - x_lanza, altura, -vx, vy)
+
+
+class ControladorAusente(Controlador):
+    """
+    El "rival" de la etapa 1: se va al fondo de su campo y no hace nada, para
+    no tocar las pelotas que devuelve el que aprende.
+    """
+
+    nombre = "lanzapelotas"
+
+    def decidir(self, p):
+        return Accion(mover=-1.0, angulo_raqueta=-1.0)

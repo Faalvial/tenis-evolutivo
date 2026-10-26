@@ -29,7 +29,7 @@ from mundo import Mundo
 
 
 def jugar_partido(ctrl_izq, ctrl_der, semilla, puntos=config.PUNTOS_POR_PARTIDO,
-                  grabacion=None, saque=None):
+                  grabacion=None, saque=None, receptor_fijo=None):
     """
     Simula un partido y devuelve la lista de eventos (eventos.py).
 
@@ -37,6 +37,8 @@ def jugar_partido(ctrl_izq, ctrl_der, semilla, puntos=config.PUNTOS_POR_PARTIDO,
     - grabacion: si se pasa una (grabar.nueva_grabacion), se llena cuadro a cuadro.
     - saque: función opcional saque(azar, receptor) -> (x, y, vx, vy) para
       reemplazar el saque neutro (el lanzapelotas de la etapa 1 la usa).
+    - receptor_fijo: si se da (0 o 1), todas las pelotas van a ese jugador en
+      lugar de alternar (el lanzapelotas siempre le lanza al que aprende).
     """
     azar = random.Random(semilla)
     funcion_saque = saque or saque_neutro
@@ -45,6 +47,8 @@ def jugar_partido(ctrl_izq, ctrl_der, semilla, puntos=config.PUNTOS_POR_PARTIDO,
     t = 0.0
     for n in range(puntos):
         receptor = IZQUIERDA if n % 2 == 0 else DERECHA   # saques alternados
+        if receptor_fijo is not None:
+            receptor = receptor_fijo
         lanzamiento = funcion_saque(azar, receptor)
         t = jugar_punto(controladores, arbitro, receptor, lanzamiento, t, grabacion)
     if grabacion is not None:
@@ -67,39 +71,66 @@ def saque_neutro(azar, receptor):
 
 def jugar_punto(controladores, arbitro, receptor, lanzamiento, t, grabacion=None):
     """Juega un punto completo y devuelve el tiempo en que terminó."""
-    mundo = Mundo()
-    jugadores = (Jugador(mundo, IZQUIERDA, config.X_INICIO_JUGADOR),
-                 Jugador(mundo, DERECHA, config.ANCHO_CANCHA - config.X_INICIO_JUGADOR))
-    mundo.colocar_pelota(*lanzamiento)
-    for c in controladores:
-        c.reiniciar()
-    arbitro.nuevo_punto(t, receptor)
-    acciones = [None, None]
-    distancia_minima = [float("inf"), float("inf")]
-    paso = 0
-    while not arbitro.punto_terminado:
-        if paso % config.PASOS_POR_DECISION == 0:
+    punto = Punto(controladores, arbitro, receptor, lanzamiento, t, grabacion)
+    while not punto.terminado:
+        punto.avanzar()
+    return punto.cerrar()
+
+
+class Punto:
+    """
+    Un punto en curso, que avanza de a un paso de física con avanzar().
+    jugar_punto lo usa en un bucle (lo más rápido posible); jugar.py, de a un
+    paso por cuadro de pantalla, para que una persona pueda jugar en vivo.
+    """
+
+    def __init__(self, controladores, arbitro, receptor, lanzamiento, t, grabacion=None):
+        self.controladores, self.arbitro, self.grabacion = controladores, arbitro, grabacion
+        self.mundo = Mundo()
+        self.jugadores = (Jugador(self.mundo, IZQUIERDA, config.X_INICIO_JUGADOR),
+                          Jugador(self.mundo, DERECHA, config.ANCHO_CANCHA - config.X_INICIO_JUGADOR))
+        self.mundo.colocar_pelota(*lanzamiento)
+        for c in controladores:
+            c.reiniciar()
+        arbitro.nuevo_punto(t, receptor)
+        self.t = t
+        self.acciones = [None, None]
+        self.distancia_minima = [float("inf"), float("inf")]
+        self.paso = 0
+
+    @property
+    def terminado(self):
+        return self.arbitro.punto_terminado
+
+    def avanzar(self):
+        mundo, jugadores = self.mundo, self.jugadores
+        if self.paso % config.PASOS_POR_DECISION == 0:
             for lado in (IZQUIERDA, DERECHA):
-                acciones[lado] = controladores[lado].decidir(percibir(mundo, jugadores, lado))
+                self.acciones[lado] = self.controladores[lado].decidir(percibir(mundo, jugadores, lado))
                 # La distancia pelota-raqueta se mide solo cuando se decide
                 # (cada 2 pasos): medirla en cada paso costaba ~25 % del tiempo.
                 d = jugadores[lado].distancia_a(mundo.pelota.position)
-                distancia_minima[lado] = min(distancia_minima[lado], d)
+                self.distancia_minima[lado] = min(self.distancia_minima[lado], d)
         for lado in (IZQUIERDA, DERECHA):
-            jugadores[lado].aplicar(acciones[lado], config.DT)
+            jugadores[lado].aplicar(self.acciones[lado], config.DT)
         mundo.avanzar()
-        paso += 1
-        t += config.DT
-        avisar_al_arbitro(mundo, jugadores, arbitro, t)
-        if grabacion is not None and paso % config.PASOS_POR_CUADRO == 0:
-            grabar.agregar_cuadro(grabacion, t, tuple(mundo.pelota.position),
+        self.paso += 1
+        self.t += config.DT
+        avisar_al_arbitro(mundo, jugadores, self.arbitro, self.t)
+        if self.grabacion is not None and self.paso % config.PASOS_POR_CUADRO == 0:
+            grabar.agregar_cuadro(self.grabacion, self.t, tuple(mundo.pelota.position),
                                   jugadores[IZQUIERDA].estado_grabacion(),
                                   jugadores[DERECHA].estado_grabacion())
-    # Campo agregado al evento PUNTO (compatible con la interfaz): la menor
-    # distancia entre la pelota y cada raqueta durante el punto. La usa la
-    # aptitud de la etapa 1 para premiar "acercarse a la pelota".
-    arbitro.eventos[-1]["distancia_minima"] = [round(d, 1) for d in distancia_minima]
-    return t
+
+    def cerrar(self):
+        """
+        Termina el punto. Agrega al evento PUNTO (campo compatible con la
+        interfaz) la menor distancia entre la pelota y cada raqueta: la usa la
+        aptitud de la etapa 1 para premiar "acercarse a la pelota".
+        Devuelve el tiempo en que terminó.
+        """
+        self.arbitro.eventos[-1]["distancia_minima"] = [round(d, 1) for d in self.distancia_minima]
+        return self.t
 
 
 def avisar_al_arbitro(mundo, jugadores, arbitro, t):

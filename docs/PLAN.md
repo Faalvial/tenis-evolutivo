@@ -124,6 +124,7 @@ Los valores numéricos son **iniciales y ajustables**. Van en `config.py` y se c
 > - **Espacio detrás del fondo** (400) donde los jugadores pueden pararse; **zona prohibida junto a la red** de 62 para que la raqueta no la cruce.
 > - **Tiempo máximo por punto: 30 s** (no 20). **Subpasos: 2.** Rango de la raqueta: −1,4 a −0,4 rad.
 > - **Realismo progresivo del golpe** (sección 1.6 del capítulo 1): encendidas la capa 1 (la pelota que llega aporta el 30 % de su rapidez) y la capa 2 (punto dulce: hasta −30 % en los extremos); la capa 3 (ángulo al tocar) queda apagada porque vuelve el golpe caótico. Si en la etapa 1 nadie aprende, plan B: currículo de física (capas apagadas al inicio); en la etapa 3 la física es siempre la final.
+> - **F2b:** la red tiene 14 entradas (las 12 de la percepción + la posición de la pelota respecto de la raqueta) y 156 pesos; el golpe necesita superar un umbral de 0,3. El lanzapelotas apunta con el tiro parabólico. Se corrigió una regla del árbitro (segundo bote del saque fuera de la cancha). Detalle: capítulo 4.
 
 ### 3.1 Mundo (unidades de pymunk)
 - **Cancha:** ancho 1200; red en x = 600, de 60 de alto; suelo en y = 0; gravedad −900.
@@ -299,6 +300,7 @@ tenis_evolutivo/
   - Peor caso: 240 partidos × 0,25 s = 60 s de CPU por generación → ≈ 7,5 s con 8 núcleos → 25 min por rama de 200 generaciones → **≈ 17 h** para 10 semillas × 4 ramas.
   - Caso típico temprano: ≈ 2 s por generación → **≈ 4 h**.
   - Falta sumar el costo de la red (se mide en F2b). Probablemente haga falta aplicar recortes: decidir al terminar F2b, con números reales. Detalle en el capítulo 1 del libro, sección 1.9.
+- **Medición de F2b:** la red es el 6 % del tiempo de un partido (Python puro: 8 µs por decisión; NumPy: 4,6 µs; se queda Python puro). La etapa 1 cuesta 1–2 s por generación con 4 procesos y terminó en 36 generaciones (semilla 1). Detalle: capítulo 4 del libro.
 - **Si no alcanza, en este orden:** bajar a 5 semillas, reducir los puntos por partido, reducir la población y luego las generaciones.
 - **Optimizaciones:** decidir cada 2 pasos de física, evaluar las métricas cada 10 generaciones y elegir la red más rápida (NumPy o Python puro).
 

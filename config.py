@@ -113,6 +113,57 @@ RIVAL_ERROR_FUERZA = 0.07      # error relativo de la fuerza (0,07 = ±7 % típi
 RIVAL_ERROR_POSICION = 12.0    # desviación típica (en unidades) del error al ubicarse
 RIVAL_ZONA_FRENADO = 20.0      # a esta distancia del destino empieza a frenar
 
+# --- Red neuronal (red.py, percepcion.py; capítulo 4) ---
+OCULTAS = 8                # neuronas de la capa oculta
+UMBRAL_GOLPE = 0.3         # la salida "golpe" (tanh) tiene que superar esto para golpear
+LIMITE_ALTURA_PERCEPCION = 400.0   # alturas de la pelota de 0 a esto se ven de -1 a 1
+
+# --- Algoritmo genético (genetico.py; capítulo 4) ---
+POBLACION = 60
+TORNEO = 3                 # en cada torneo compiten 3 al azar
+ELITE = 2                  # los mejores que pasan sin cambios
+SIGMA_MUTACION = 0.15      # tamaño típico de una mutación (el plan: entre 0,1 y 0,2)
+PROB_MUTACION = 1.0        # probabilidad de mutar cada peso
+LIMITE_PESO = 5.0          # recorte suave de los pesos a ±5
+DESVIACION_INICIAL = 1.0   # los pesos de la generación 0 salen de una normal con esta desviación
+TIPO_CRUCE = "neurona"     # "neurona", "uniforme" o "ninguno"
+PROB_CRUCE = 0.7           # probabilidad de que un hijo tenga dos padres (si no, es copia de uno)
+
+# --- Etapa 1: lanzapelotas (rivales.py, aptitud.py, entrenar.py; capítulo 4) ---
+LANZAMIENTOS_POR_EVALUACION = 8
+LANZAPELOTAS_X = (850.0, 1100.0)     # desde dónde lanza (campo rival)
+LANZAPELOTAS_ALTURA = (60.0, 120.0)
+LANZAPELOTAS_DESTINO = (150.0, 450.0)  # dónde quiere que bote (campo del que aprende)
+LANZAPELOTAS_ANGULO = (30.0, 50.0)   # grados sobre la horizontal
+PREMIO_TOQUE = 1.0         # aptitud de la etapa 1 (sección 6 del plan)
+PREMIO_CRUZA = 3.0
+PREMIO_DENTRO = 5.0
+PREMIO_CERCANIA = 0.5      # máximo premio por acercarse sin tocar (menor que un toque)
+DISTANCIA_CERCANIA = 300.0 # a esta distancia o más, el premio por acercarse es 0
+ETAPA1_MAX_GENERACIONES = 150
+ETAPA1_META_DEVUELTAS = 0.6        # criterio: el campeón devuelve bien el 60 % de las pelotas
+ETAPA1_LANZAMIENTOS_PRUEBA = 40    # pelotas de la prueba del campeón (siempre las mismas)
+ETAPA1_PRUEBA_CADA = 5             # cada cuántas generaciones se prueba al campeón
+
+# Candidatos a campeón: cada vez que se prueba al campeón, se prueban los
+# CANDIDATOS_PRUEBA mejores de la generación (no solo el primero), porque con
+# pocas pelotas por evaluación el "mejor" muchas veces es solo el de más suerte.
+CANDIDATOS_PRUEBA = 5
+
+# --- Etapa 2: contra el rival programado (capítulo 5) ---
+PUNTOS_ETAPA2 = 8                  # puntos por evaluación (saques alternados)
+PESO_DEVOLUCIONES = 0.2            # aptitud = puntos ganados + 0,2 × devoluciones válidas (plan)
+ETAPA2_MAX_GENERACIONES = 200
+ETAPA2_META_GANADOS = 0.4          # criterio: el campeón gana el 40 % de los puntos
+ETAPA2_PUNTOS_PRUEBA = 100         # puntos de la prueba del campeón (siempre los mismos)
+ETAPA2_PRUEBA_CADA = 5
+
+# --- Etapa 3: IA contra IA (capítulo 6) ---
+ETAPA3_GENERACIONES = 200          # número FIJO de generaciones (no hay meta: es el experimento)
+RIVALES_POBLACION = 2              # rivales al azar de la población actual
+RIVALES_SALON = 2                  # rivales al azar del salón de la fama
+METRICAS_CADA = 10                 # cada cuántas generaciones se mide al campeón (sección 8)
+
 # --- Grabaciones (ver docs/interfaces.md) ---
 VERSION_GRABACION = 1      # súbelo solo si el formato cambia de forma incompatible
 PASOS_POR_CUADRO = 1       # 1 = se guarda cada paso de física (60 cuadros por segundo)

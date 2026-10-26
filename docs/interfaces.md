@@ -141,11 +141,12 @@ Decisiones y por qué:
 
 ```python
 def jugar_partido(ctrl_izq, ctrl_der, semilla, puntos=config.PUNTOS_POR_PARTIDO,
-                  grabacion=None, saque=None) -> list[dict]:
+                  grabacion=None, saque=None, receptor_fijo=None) -> list[dict]:
     """Simula un partido y devuelve la lista de eventos. Si se pasa una
     grabación (grabar.nueva_grabacion), además la va llenando cuadro a cuadro.
     saque(azar, receptor) -> (x, y, vx, vy) reemplaza el saque neutro
-    (lo usa el lanzapelotas de la etapa 1)."""
+    (lo usa el lanzapelotas de la etapa 1). receptor_fijo (0 o 1) hace que
+    todas las pelotas vayan al mismo jugador (agregado en F2b, compatible)."""
 ```
 
 ## Decisiones tomadas en F1 (las tres aclaraciones)

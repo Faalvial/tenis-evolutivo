@@ -5,6 +5,7 @@ Lo usan el entrenamiento, los experimentos y las grabaciones, por eso vive en
 un módulo común.
 """
 
+import csv
 import json
 import os
 
@@ -24,3 +25,17 @@ def guardar_json(ruta, datos):
 def cargar_json(ruta):
     with open(ruta, encoding="utf-8") as f:
         return json.load(f)
+
+
+def guardar_csv(ruta, columnas, filas):
+    """
+    Escribe una tabla CSV completa, también de forma atómica. Se reescribe
+    entera cada vez (en lugar de agregar una línea): así, si el programa se
+    corta, el CSV nunca queda con una línea a medias ni repetida.
+    """
+    temporal = str(ruta) + ".tmp"
+    with open(temporal, "w", encoding="utf-8", newline="") as f:
+        escritor = csv.writer(f)
+        escritor.writerow(columnas)
+        escritor.writerows(filas)
+    os.replace(temporal, ruta)

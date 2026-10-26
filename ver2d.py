@@ -105,21 +105,23 @@ class Camara:
         return max(1, int(d * self.escala))
 
 
+def encuadre_crudo(c):
+    """El tramo (x_min, x_max) que encuadra a los dos jugadores y la pelota en un cuadro."""
+    xs = (c["izq_x"], c["der_x"], c["pelota_x"])
+    lo, hi = min(xs) - MARGEN_CAMARA, max(xs) + MARGEN_CAMARA
+    falta = ANCHO_MINIMO_CAMARA - (hi - lo)
+    if falta > 0:
+        lo, hi = lo - falta / 2, hi + falta / 2
+    return lo, hi
+
+
 def encuadres(g):
     """
     Para cada cuadro, el tramo (x_min, x_max) que debe mostrar la cámara:
     los dos jugadores y la pelota con margen, suavizado con un promedio móvil
     (promediar varios cuadros vecinos quita los saltos bruscos).
     """
-    crudos = []
-    for i in range(len(g["cuadros"])):
-        c = grabar.cuadro_como_dict(g, i)
-        xs = (c["izq_x"], c["der_x"], c["pelota_x"])
-        lo, hi = min(xs) - MARGEN_CAMARA, max(xs) + MARGEN_CAMARA
-        falta = ANCHO_MINIMO_CAMARA - (hi - lo)
-        if falta > 0:
-            lo, hi = lo - falta / 2, hi + falta / 2
-        crudos.append((lo, hi))
+    crudos = [encuadre_crudo(grabar.cuadro_como_dict(g, i)) for i in range(len(g["cuadros"]))]
     suaves = []
     for i in range(len(crudos)):
         vecinos = crudos[max(0, i - SUAVIZADO_CAMARA): i + SUAVIZADO_CAMARA + 1]
@@ -193,14 +195,20 @@ def mezclar(color, otro, f):
 class Escena:
     """Todo lo necesario para dibujar una grabación: cámara, letras y fondo."""
 
-    def __init__(self, pygame, g):
+    def __init__(self, pygame, g, en_vivo=False):
+        """
+        en_vivo=True: la grabación se va llenando mientras se juega (jugar.py),
+        así que la cámara no puede mirar el futuro: se suaviza hacia atrás.
+        """
         import pygame.gfxdraw
         self.pg = pygame
         self.gfx = pygame.gfxdraw
         self.g = g
         self.cancha = g["cancha"]
-        self.encuadres = encuadres(g)
-        self.cam = Camara(*self.encuadres[0])
+        self.en_vivo = en_vivo
+        self.encuadres = None if en_vivo else encuadres(g)
+        self._encuadre_suave = None
+        self.cam = Camara(0.0, self.cancha["ancho"])
         self.nombres = g["meta"].get("jugadores", ["izquierda", "derecha"])
         self.fuente = pygame.font.Font(None, 22)
         self.fuente_nombre = pygame.font.Font(None, 26)
@@ -283,7 +291,7 @@ class Escena:
         g = self.g
         i = indice_cuadro(g, t)
         cuadro = grabar.cuadro_como_dict(g, i)
-        self.cam = Camara(*self.encuadres[i])
+        self.cam = Camara(*self._encuadre(i, cuadro))
         pantalla.blit(self.fondo, (0, 0))
         self._pintar_suelo(pantalla)
         self._pintar_red(pantalla)
@@ -298,6 +306,18 @@ class Escena:
             self._jugador(pantalla, cuadro, prefijo, lado, t)
         self._pelota(pantalla, cuadro["pelota_x"], cuadro["pelota_y"], t)
         self._marcador(pantalla, t, velocidad, pausado)
+
+    def _encuadre(self, i, cuadro):
+        if not self.en_vivo:
+            return self.encuadres[i]
+        # En vivo: cada cuadro la cámara se acerca un poco al encuadre ideal
+        # (suavizado exponencial: no necesita conocer los cuadros futuros).
+        objetivo = encuadre_crudo(cuadro)
+        if self._encuadre_suave is None:
+            self._encuadre_suave = objetivo
+        f = 2.0 / (SUAVIZADO_CAMARA + 1)
+        self._encuadre_suave = tuple(a + (b - a) * f for a, b in zip(self._encuadre_suave, objetivo))
+        return self._encuadre_suave
 
     def _sombras(self, cuadro):
         """Sombras en el suelo: más chicas y claras cuanto más alto está el objeto."""

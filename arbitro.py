@@ -127,14 +127,15 @@ class Arbitro:
 
     def _bote_de_saque(self, t, x, campo):
         self._anotar(eventos.BOTE, t, x=x, campo=campo, golpeador=None, valido=False)
-        if campo != self.receptor:
-            # El saque es automático y siempre apunta al receptor; si cae en
-            # otro lado no es culpa de nadie.
-            self._terminar(t, perdedor=None, motivo=eventos.ANULADO)
-            return
         self.botes_saque += 1
         if self.botes_saque >= 2:
+            # Segundo bote sin que el receptor la toque: pierde él, caiga
+            # donde caiga (como después de un golpe válido).
             self._terminar(t, perdedor=self.receptor, motivo=eventos.DOBLE_BOTE)
+        elif campo != self.receptor:
+            # El saque es automático y siempre apunta al receptor; si su
+            # PRIMER bote cae en otro lado no es culpa de nadie.
+            self._terminar(t, perdedor=None, motivo=eventos.ANULADO)
 
     def _terminar(self, t, perdedor, motivo):
         ganador = None if perdedor is None else rival_de(perdedor)

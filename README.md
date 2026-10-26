@@ -42,9 +42,10 @@ Criterio de F0: `pytest` corre sin errores en la máquina de cada integrante.
 | Fase | Estado |
 |---|---|
 | F0 Preparación | Repositorio, entorno y pruebas listos; interfaces decididas en F1, **falta la revisión del equipo** |
-| F1 Física y reglas | Lista: dos rivales programados pelotean, 63 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
+| F1 Física y reglas | Lista: dos rivales programados pelotean, 90 pruebas pasan ([capítulo 1](docs/libro/cap01_fisica_y_reglas.md)) |
 | V1 Grabaciones + 2D | Lista: `python partido.py --grabar ...` y `python ver2d.py ...` ([capítulo 2](docs/libro/cap02_grabaciones_y_visor.md)) |
 | F2a Aprender redes | Lista: ejercicio "seguir un punto", `python ejercicios/seguir_punto.py` ([capítulo 3](docs/libro/cap03_red_neuronal.md)); falta que R2 responda las preguntas de la sección 3.8 |
+| F2b Red + AG + etapa 1 | Lista: el campeón devuelve bien el 60 % de las pelotas del lanzapelotas ([capítulo 4](docs/libro/cap04_neuroevolucion_etapa1.md)) |
 
 Para probarlo:
 
@@ -53,6 +54,8 @@ python partido.py                                  # un partido entre dos rivale
 python partido.py --grabar grabaciones/demo.json   # ...grabado
 python ver2d.py grabaciones/demo.json              # verlo
 python partido.py --medir 20                       # medir el tiempo de un partido
+python entrenar.py --carpeta resultados/prueba --semilla 1   # entrenar la etapa 1
+python entrenar.py --carpeta resultados/prueba --grabar-campeon
 ```
 
 ## Archivos
@@ -70,6 +73,11 @@ python partido.py --medir 20                       # medir el tiempo de un parti
 | `partido.py` | Simula partidos entre dos controladores |
 | `rivales.py` | Rival programado (tiro parabólico + errores al azar) |
 | `ver2d.py` | Visor 2D de grabaciones (pygame) |
+| `percepcion.py` | Percepción → 14 entradas de la red, entre −1 y 1 |
+| `red.py` | Red neuronal 14-8-4 y `ControladorRed` |
+| `genetico.py` | Algoritmo genético: torneo, cruce por neurona, mutación, elitismo |
+| `aptitud.py` | Funciones de aptitud (por ahora, la de la etapa 1) |
+| `entrenar.py` | Entrenamiento por etapas, en paralelo, reanudable |
 | `ejercicios/seguir_punto.py` | Ejercicio F2a: una red aprende a perseguir un punto (no es parte del experimento) |
 | `tests/` | Pruebas automáticas (`pytest`) |
 
@@ -100,6 +108,12 @@ Cada concepto nuevo que aparezca en el código se agrega aquí con una fuente.
 - **Propagación hacia adelante y capa oculta**: mismas fuentes; en código, `ejercicios/seguir_punto.py` (`propagar`).
 - **Algoritmo genético** (población, aptitud, selección por torneo, mutación, elitismo): *The Nature of Code*, cap. 9. https://natureofcode.com/genetic-algorithms/
 - **Neuroevolución** (encontrar los pesos por evolución en vez de retropropagación): *The Nature of Code*, cap. 11. https://natureofcode.com/neuroevolution/
+
+### Entrenamiento (capítulo 4)
+
+- **Cruce por neurona y convenciones en competencia**: Stanley y Miikkulainen, "Evolving Neural Networks through Augmenting Topologies", 2002, sección 2.2. https://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf
+- **Problema del arranque y aptitud por escalones** (*fitness shaping*): *The Nature of Code*, cap. 11. https://natureofcode.com/neuroevolution/
+- **Evaluación en paralelo** (`multiprocessing.Pool`): https://docs.python.org/es/3/library/multiprocessing.html
 
 ### Conceptos del proyecto
 
