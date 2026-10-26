@@ -1,7 +1,8 @@
 # Plan del proyecto: Tenis evolutivo
 
 > Documento de diseño para implementar con Claude Code, **fase por fase**.
-> Todavía no hay código: este plan define qué se construye, en qué orden y cómo se sabe que cada parte funciona.
+> Este plan define qué se construye, en qué orden y cómo se sabe que cada parte funciona.
+> Lo que se aprendió al construir cada fase está en el libro: `docs/libro/`.
 
 ---
 
@@ -116,6 +117,12 @@ Conviene confirmar con el asesor o la organización que se puede agregar un subt
 ## 3. Diseño del juego
 
 Los valores numéricos son **iniciales y ajustables**. Van en `config.py` y se calibran en la fase 1.
+
+> **Cambios tras F1** (el porqué de cada uno está en `docs/libro/cap01_fisica_y_reglas.md`, sección 1.4):
+> - **Modelo de golpe:** si la pelota toca la raqueta durante un golpe, sale perpendicular a la raqueta (ángulo al empezar el golpe) con una rapidez que depende solo de la fuerza. El choque 100 % físico era caótico (el mejor rival devolvía el 65 %).
+> - **Sin paredes invisibles:** los jugadores se mantienen en su mitad con un límite explícito de posición (las paredes se atravesaban).
+> - **Espacio detrás del fondo** (400) donde los jugadores pueden pararse; **zona prohibida junto a la red** de 62 para que la raqueta no la cruce.
+> - **Tiempo máximo por punto: 30 s** (no 20). **Subpasos: 2.** Rango de la raqueta: −1,4 a −0,4 rad.
 
 ### 3.1 Mundo (unidades de pymunk)
 - **Cancha:** ancho 1200; red en x = 600, de 60 de alto; suelo en y = 0; gravedad −900.
@@ -287,6 +294,10 @@ tenis_evolutivo/
   - la memoria estaba al 80 % en la captura: cerrar programas pesados (navegador, juegos) antes de correr experimentos largos;
   - una laptop delgada reduce su velocidad al calentarse: conectarla al cargador y en modo "máximo rendimiento";
   - la laptop gamer del integrante puede usarse para correr parte de las semillas en paralelo (cada máquina corre semillas distintas y luego se juntan las carpetas `resultados/`).
+- **Medición de F1** (nube, Xeon 2,1 GHz, un núcleo): un partido de 6 puntos entre dos rivales programados tarda **≈ 0,25 s** (75 s de juego simulado); es el peor caso, con peloteos largos. Jugadores que fallan rápido: ≈ 0,05 s.
+  - Peor caso: 240 partidos × 0,25 s = 60 s de CPU por generación → ≈ 7,5 s con 8 núcleos → 25 min por rama de 200 generaciones → **≈ 17 h** para 10 semillas × 4 ramas.
+  - Caso típico temprano: ≈ 2 s por generación → **≈ 4 h**.
+  - Falta sumar el costo de la red (se mide en F2b). Probablemente haga falta aplicar recortes: decidir al terminar F2b, con números reales. Detalle en el capítulo 1 del libro, sección 1.8.
 - **Si no alcanza, en este orden:** bajar a 5 semillas, reducir los puntos por partido, reducir la población y luego las generaciones.
 - **Optimizaciones:** decidir cada 2 pasos de física, evaluar las métricas cada 10 generaciones y elegir la red más rápida (NumPy o Python puro).
 
@@ -428,6 +439,6 @@ Este texto puede copiarse a `CLAUDE.md`:
 - [ ] Confirmar el título general antes del 6 de noviembre, y si se puede agregar un subtítulo después.
 - [ ] Fechas de las prácticas calificadas de cada integrante, para marcarlas en el cronograma.
 - [ ] Probar el visor 3D en la laptop gamer (V2).
-- [ ] Valores numéricos de física y reglas: se calibran en F1.
+- [x] Valores numéricos de física y reglas: calibrados en F1 (ver capítulo 1 del libro).
 - [ ] Número final de semillas (10 o 5) según el tiempo medido en F1.
 - [ ] Si se hace el experimento secundario (matriz de campeones).

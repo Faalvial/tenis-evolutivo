@@ -1,7 +1,7 @@
 """
 eventos.py — VOCABULARIO COMÚN de lo que pasa en un partido.
 
-PROPUESTA F0 — pendiente de acuerdo del equipo.
+Decidida en F1 (ver docs/libro/cap00_preparacion.md); el equipo puede revisarla.
 
 El árbitro (R1) produce estos eventos; los consumen la aptitud (R2), las
 métricas (R4) y las grabaciones (R3). Por eso son interfaz común: si todos
@@ -17,11 +17,15 @@ y requiere acuerdo.
 
 # --- Tipos de evento ---
 SAQUE = "saque"   # campos: hacia (lado que recibe)
-GOLPE = "golpe"   # campos: jugador (lado), x, y, fuerza (0..1)
+GOLPE = "golpe"   # campos: jugador (lado), x, y (posición de la pelota), fuerza (0..1).
+                  # Es un CONTACTO de la pelota con la raqueta, no un swing: un swing
+                  # al aire no produce evento. fuerza = 0 si la tocó sin golpear.
 BOTE = "bote"     # campos: x, campo (lado donde botó), golpeador (lado o None si viene del saque),
                   #         valido (True si es el primer bote en el campo rival de quien golpeó)
 RED = "red"       # campos: golpeador (lado o None). La pelota tocó la red.
-PUNTO = "punto"   # campos: ganador (lado o None si se anuló), motivo, golpes_validos
+PUNTO = "punto"   # campos: ganador (lado o None si se anuló), motivo, golpes_validos,
+                  #         distancia_minima ([izq, der]: lo más cerca que estuvo cada
+                  #         raqueta de la pelota; la usa la aptitud de la etapa 1)
 
 TIPOS = (SAQUE, GOLPE, BOTE, RED, PUNTO)
 

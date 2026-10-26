@@ -1,7 +1,7 @@
 """
 grabar.py — Repeticiones de partidos (formato de grabación).
 
-PROPUESTA F0 — el FORMATO es interfaz común y pendiente de acuerdo del equipo.
+El FORMATO es interfaz común (decidido en F1, ver docs/libro/cap00_preparacion.md).
 R3 es dueño de este módulo y puede agregarle funciones; cambiar el formato
 requiere acuerdo (ver docs/interfaces.md).
 

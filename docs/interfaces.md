@@ -1,8 +1,10 @@
-# Interfaces comunes — propuesta F0
+# Interfaces comunes
 
-> **Estado: PROPUESTA, pendiente de acuerdo del equipo.** Cuando todos la
-> acepten, cambiar esta línea a "Acordada el <fecha>". Desde entonces, cualquier
-> cambio incompatible se discute antes con el equipo.
+> **Estado: DECIDIDA en F1 (26 oct 2026), pendiente de revisión del equipo.**
+> Se tomó la propuesta de F0 con tres aclaraciones (al final de este archivo);
+> el porqué de cada una está en `docs/libro/cap00_preparacion.md`. Cuando el
+> equipo la revise, cambiar esta línea a "Acordada el <fecha>". Desde entonces,
+> cualquier cambio incompatible se discute antes con el equipo.
 
 Son tres piezas que conectan el trabajo de varios roles. Si se acuerdan
 ahora, cada uno puede avanzar en paralelo sin esperar al resto:
@@ -90,10 +92,10 @@ mal escritos.
 | Tipo | Campos |
 |---|---|
 | `saque` | `hacia` (lado que recibe) |
-| `golpe` | `jugador`, `x`, `y`, `fuerza` |
+| `golpe` | `jugador`, `x`, `y` (de la pelota), `fuerza` — un **contacto** pelota-raqueta |
 | `bote` | `x`, `campo` (lado donde botó), `golpeador` (lado o `None` si viene del saque), `valido` |
 | `red` | `golpeador` |
-| `punto` | `ganador` (lado o `None`), `motivo`, `golpes_validos` |
+| `punto` | `ganador` (lado o `None`), `motivo`, `golpes_validos`, `distancia_minima` |
 
 Motivos de fin de punto: `doble_bote`, `bote_propio` (incluye la red),
 `fuera`, `techo`, `anulado` (tiempo agotado).
@@ -135,20 +137,33 @@ Decisiones y por qué:
 - **60 cuadros por segundo** (`PASOS_POR_CUADRO = 1`) para que la cámara lenta del 3D se vea fluida; posiciones redondeadas a 1 decimal y ángulos a 3. Un partido de 6 puntos pesa del orden de unos cientos de KB.
 - **`version`:** `cargar_grabacion` rechaza versiones que no conoce, en lugar de dibujar basura.
 
-## 4. Sugerencia para `partido.py` (la define R1 en F1)
-
-Para que R2, R3 y R4 puedan escribir código contra ella desde ya:
+## 4. `partido.py` (definida en F1)
 
 ```python
 def jugar_partido(ctrl_izq, ctrl_der, semilla, puntos=config.PUNTOS_POR_PARTIDO,
-                  grabacion=None) -> list[dict]:
+                  grabacion=None, saque=None) -> list[dict]:
     """Simula un partido y devuelve la lista de eventos. Si se pasa una
-    grabación (grabar.nueva_grabacion), además la va llenando cuadro a cuadro."""
+    grabación (grabar.nueva_grabacion), además la va llenando cuadro a cuadro.
+    saque(azar, receptor) -> (x, y, vx, vy) reemplaza el saque neutro
+    (lo usa el lanzapelotas de la etapa 1)."""
 ```
 
-## Puntos para decidir en la reunión
+## Decisiones tomadas en F1 (las tres aclaraciones)
 
-- [ ] ¿Las 12 entradas alcanzan, o se agrega algo (por ejemplo, la velocidad horizontal propia)?
-- [ ] ¿`golpe` como fuerza 0..1 con umbral en cada controlador, o umbral común en `jugador.py`?
-- [ ] ¿60 cuadros por segundo o 30 (`PASOS_POR_CUADRO = 2`, archivos de la mitad de tamaño)?
-- [ ] ¿La firma sugerida de `jugar_partido` le sirve a R1?
+1. **`golpe` = contacto.** El evento `golpe` se produce cuando la pelota toca
+   la raqueta, no cuando el jugador hace el swing. Un swing al aire no deja
+   rastro; un toque sin swing (raqueta quieta) sí, con `fuerza = 0`.
+2. **`distancia_minima` en el evento `punto`.** Lista `[izq, der]` con la menor
+   distancia entre la pelota y cada raqueta durante el punto. La etapa 1
+   premia "acercarse a la pelota cuando no la toca" y no hay otra forma de
+   saberlo sin volver a simular. Es un campo nuevo: compatible.
+3. **El lanzapelotas usa el evento `saque`.** Cada lanzamiento de la etapa 1
+   es un `saque` normal (con `hacia`); `jugar_partido` recibe la función
+   `saque` para cambiar cómo se lanza la pelota. No hace falta un tipo nuevo.
+
+Respuestas a los puntos que quedaron abiertos en F0:
+
+- Las 12 entradas se mantienen por ahora; se revisará en F2b si a la red le falta información.
+- El umbral del golpe lo decide cada controlador (como estaba propuesto).
+- 60 cuadros por segundo: una grabación de 6 puntos pesa unos 300 KB, aceptable.
+- La firma de `jugar_partido` es la de arriba.
